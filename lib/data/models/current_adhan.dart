@@ -22,19 +22,58 @@ class CurrentAdhan {
     required this.maghribTime,
     required this.ishaTime,
     this.suhoorTime,
-  });
+  }) {
+    // التحقق من صحة صيغة أوقات الصلاة
+    if (!isValidTimeFormat(fajrTime)) {
+      throw FormatException('صيغة وقت الفجر غير صالحة: $fajrTime');
+    }
+    if (!isValidTimeFormat(sunriseTime)) {
+      throw FormatException('صيغة وقت الشروق غير صالحة: $sunriseTime');
+    }
+    if (!isValidTimeFormat(dhuhrTime)) {
+      throw FormatException('صيغة وقت الظهر غير صالحة: $dhuhrTime');
+    }
+    if (!isValidTimeFormat(asrTime)) {
+      throw FormatException('صيغة وقت العصر غير صالحة: $asrTime');
+    }
+    if (!isValidTimeFormat(maghribTime)) {
+      throw FormatException('صيغة وقت المغرب غير صالحة: $maghribTime');
+    }
+    if (!isValidTimeFormat(ishaTime)) {
+      throw FormatException('صيغة وقت العشاء غير صالحة: $ishaTime');
+    }
+    if (suhoorTime != null && !isValidTimeFormat(suhoorTime!)) {
+      throw FormatException('صيغة وقت السحور غير صالحة: $suhoorTime');
+    }
+  }
+
+  /// التحقق من صحة صيغة الوقت
+  static bool isValidTimeFormat(String time) {
+    final RegExp timeRegex = RegExp(r'^([01]\d|2[0-3]):([0-5]\d)$');
+    return timeRegex.hasMatch(time);
+  }
 
   /// إنشاء نموذج من خريطة بيانات
   factory CurrentAdhan.fromMap(Map<String, dynamic> map) {
+    // معالجة التاريخ: يمكن أن يكون إما String أو DateTime
+    DateTime dateTime;
+    if (map['date'] is String) {
+      dateTime = DateTime.parse(map['date']);
+    } else if (map['date'] is DateTime) {
+      dateTime = map['date'];
+    } else {
+      throw FormatException('صيغة التاريخ غير صالحة: ${map['date']}');
+    }
+
     return CurrentAdhan(
       id: map['id'],
-      date: DateTime.parse(map['date']),
-      fajrTime: map['fajr_time'],
-      sunriseTime: map['sunrise_time'],
-      dhuhrTime: map['dhuhr_time'],
-      asrTime: map['asr_time'],
-      maghribTime: map['maghrib_time'],
-      ishaTime: map['isha_time'],
+      date: dateTime,
+      fajrTime: map['fajr_time'] ?? '00:00',
+      sunriseTime: map['sunrise_time'] ?? '00:00',
+      dhuhrTime: map['dhuhr_time'] ?? '00:00',
+      asrTime: map['asr_time'] ?? '00:00',
+      maghribTime: map['maghrib_time'] ?? '00:00',
+      ishaTime: map['isha_time'] ?? '00:00',
       suhoorTime: map['suhoor_time'],
     );
   }
@@ -77,5 +116,14 @@ class CurrentAdhan {
       ishaTime: ishaTime ?? this.ishaTime,
       suhoorTime: suhoorTime ?? this.suhoorTime,
     );
+  }
+
+  @override
+  String toString() {
+    return 'CurrentAdhan(id: $id, date: ${DateFormat('yyyy-MM-dd').format(date)}, '
+        'fajrTime: $fajrTime, sunriseTime: $sunriseTime, '
+        'dhuhrTime: $dhuhrTime, asrTime: $asrTime, '
+        'maghribTime: $maghribTime, ishaTime: $ishaTime, '
+        'suhoorTime: $suhoorTime)';
   }
 }

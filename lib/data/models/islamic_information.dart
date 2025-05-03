@@ -11,9 +11,20 @@ class IslamicInformation {
     required this.content,
     this.category,
     this.source,
-  });
+  }) {
+    if (title.isEmpty) {
+      throw ArgumentError('عنوان المعلومة الإسلامية لا يمكن أن يكون فارغاً');
+    }
+    if (content.isEmpty) {
+      throw ArgumentError('محتوى المعلومة الإسلامية لا يمكن أن يكون فارغاً');
+    }
+  }
 
   factory IslamicInformation.fromMap(Map<String, dynamic> map) {
+    if (map['title'] == null || map['content'] == null) {
+      throw ArgumentError('البيانات غير كاملة: يجب توفير العنوان والمحتوى');
+    }
+
     return IslamicInformation(
       id: map['id'],
       title: map['title'],
@@ -31,5 +42,27 @@ class IslamicInformation {
       'category': category,
       'source': source,
     };
+  }
+
+  /// إنشاء نسخة معدلة من هذا النموذج
+  IslamicInformation copyWith({
+    int? id,
+    String? title,
+    String? content,
+    String? category,
+    String? source,
+  }) {
+    return IslamicInformation(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      content: content ?? this.content,
+      category: category ?? this.category,
+      source: source ?? this.source,
+    );
+  }
+
+  @override
+  String toString() {
+    return 'IslamicInformation(id: $id, title: $title, category: $category, source: $source)';
   }
 }

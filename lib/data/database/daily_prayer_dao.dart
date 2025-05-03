@@ -1,5 +1,5 @@
 import 'package:sqflite/sqflite.dart';
-import '../models/daily_prayers.dart';
+import '../models/daily_worship.dart';
 import 'database_helper.dart';
 
 class DailyPrayerDao {

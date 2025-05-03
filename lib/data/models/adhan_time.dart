@@ -24,15 +24,25 @@ class AdhanTimes {
 
   /// إنشاء نموذج من خريطة بيانات قاعدة البيانات
   factory AdhanTimes.fromMap(Map<String, dynamic> map) {
+    // معالجة التاريخ: يمكن أن يكون إما String أو DateTime
+    DateTime dateTime;
+    if (map['date'] is String) {
+      dateTime = DateTime.parse(map['date']);
+    } else if (map['date'] is DateTime) {
+      dateTime = map['date'];
+    } else {
+      throw FormatException('صيغة التاريخ غير صالحة: ${map['date']}');
+    }
+
     return AdhanTimes(
       id: map['id'],
-      date: map['date'],
-      fajrTime: map['fajr_time'],
-      sunriseTime: map['sunrise_time'],
-      dhuhrTime: map['dhuhr_time'],
-      asrTime: map['asr_time'],
-      maghribTime: map['maghrib_time'],
-      ishaTime: map['isha_time'],
+      date: dateTime,
+      fajrTime: map['fajr_time'] ?? '',
+      sunriseTime: map['sunrise_time'] ?? '',
+      dhuhrTime: map['dhuhr_time'] ?? '',
+      asrTime: map['asr_time'] ?? '',
+      maghribTime: map['maghrib_time'] ?? '',
+      ishaTime: map['isha_time'] ?? '',
       suhoorTime: map['suhoor_time'],
     );
   }
@@ -41,7 +51,7 @@ class AdhanTimes {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'date': date,
+      'date': date.toIso8601String(), // تحويل التاريخ إلى صيغة نصية ISO
       'fajr_time': fajrTime,
       'sunrise_time': sunriseTime,
       'dhuhr_time': dhuhrTime,
@@ -50,6 +60,12 @@ class AdhanTimes {
       'isha_time': ishaTime,
       'suhoor_time': suhoorTime,
     };
+  }
+
+  /// التحقق من صحة صيغة الوقت
+  static bool isValidTimeFormat(String time) {
+    final RegExp timeRegex = RegExp(r'^([01]\d|2[0-3]):([0-5]\d)$');
+    return timeRegex.hasMatch(time);
   }
 
   /// إنشاء نسخة معدلة من هذا النموذج
@@ -75,5 +91,14 @@ class AdhanTimes {
       ishaTime: ishaTime ?? this.ishaTime,
       suhoorTime: suhoorTime ?? this.suhoorTime,
     );
+  }
+
+  @override
+  String toString() {
+    return 'AdhanTimes(id: $id, date: ${date.toIso8601String()}, '
+        'fajrTime: $fajrTime, sunriseTime: $sunriseTime, '
+        'dhuhrTime: $dhuhrTime, asrTime: $asrTime, '
+        'maghribTime: $maghribTime, ishaTime: $ishaTime, '
+        'suhoorTime: $suhoorTime)';
   }
 }

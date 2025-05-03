@@ -6,7 +6,7 @@ import '../models/adhan_time.dart';
 import '../models/islamic_information.dart';
 import '../models/hadith.dart';
 import '../models/athkar.dart';
-import '../models/daily_prayers.dart';
+import '../models/daily_worship.dart';
 import '../models/location.dart';
 import '../models/current_adhan.dart';
 import 'database_helper.dart';
