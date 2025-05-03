@@ -15,10 +15,10 @@ import 'adhan_times_dao.dart';
 import 'islamic_information_dao.dart';
 import 'hadith_dao.dart';
 import 'athkar_dao.dart';
-import 'daily_prayer_dao.dart';
 import 'location_dao.dart';
 import 'current_location_dao.dart';
 import 'current_adhan_dao.dart';
+import 'daily_worship_dao.dart';
 
 class DatabaseManager {
   static final DatabaseManager instance = DatabaseManager._privateConstructor();
@@ -28,10 +28,10 @@ class DatabaseManager {
   final islamicInformationDao = IslamicInformationDao();
   final hadithDao = HadithDao();
   final athkarDao = AthkarDao();
-  final dailyPrayerDao = DailyPrayerDao();
   final locationDao = LocationDao();
   final currentLocationDao = CurrentLocationDao();
   final currentAdhanDao = CurrentAdhanDao();
+  final dailyWorshipDao = DailyWorshipDao();
 
   DatabaseManager._privateConstructor();
 
@@ -69,8 +69,8 @@ class DatabaseManager {
     await _loadSampleCurrentAdhan();
     await _loadSampleAthkar();
     await _loadSampleHadiths();
-    await _loadSampleDailyPrayers();
     await _loadSampleIslamicInformation();
+    await _loadSampleDailyWorship();
   }
 
   // تحميل مواقع افتراضية
@@ -91,30 +91,7 @@ class DatabaseManager {
         city: "مكة المكرمة",
         methodId: 4, // أم القرى
       ),
-      Location(
-        name: "المدينة المنورة، السعودية",
-        latitude: 24.5247,
-        longitude: 39.5692,
-        country: "السعودية",
-        city: "المدينة المنورة",
-        methodId: 4,
-      ),
-      Location(
-        name: "القاهرة، مصر",
-        latitude: 30.0444,
-        longitude: 31.2357,
-        country: "مصر",
-        city: "القاهرة",
-        methodId: 5, // الأزهر
-      ),
-      Location(
-        name: "إسطنبول، تركيا",
-        latitude: 41.0082,
-        longitude: 28.9784,
-        country: "تركيا",
-        city: "إسطنبول",
-        methodId: 2, // اتحاد منظمات إسلامية في أوروبا
-      ),
+      
     ];
 
     // إضافة المواقع الافتراضية
@@ -144,14 +121,13 @@ class DatabaseManager {
     if (todayTimes != null) {
       // إنشاء كائن الأذان الحالي
       CurrentAdhan currentAdhan = CurrentAdhan(
-        date: DateTime.parse(today),
         fajrTime: todayTimes.fajrTime,
         sunriseTime: todayTimes.sunriseTime,
         dhuhrTime: todayTimes.dhuhrTime,
         asrTime: todayTimes.asrTime,
         maghribTime: todayTimes.maghribTime,
         ishaTime: todayTimes.ishaTime,
-        suhoorTime: todayTimes.suhoorTime,
+       
       );
 
       // حفظ الأذان الحالي في قاعدة البيانات
@@ -179,61 +155,26 @@ class DatabaseManager {
       asrTime: '15:30',
       maghribTime: '18:10',
       ishaTime: '19:45',
-      suhoorTime: '03:45',
+     
     );
 
     // حفظ أوقات الأذان في قاعدة البيانات
     await adhanTimesDao.save(todayAdhanTimes);
+    await currentAdhanDao.setCurrentAdhan(todayAdhanTimes);
 
-    // إنشاء أوقات الأذان للغد
-    String tomorrow =
-        DateFormat('yyyy-MM-dd').format(DateTime.now().add(Duration(days: 1)));
 
-    AdhanTimes tomorrowAdhanTimes = AdhanTimes(
-      date: DateTime.parse(tomorrow),
-      fajrTime: '04:28',
-      sunriseTime: '06:03',
-      dhuhrTime: '12:15',
-      asrTime: '15:32',
-      maghribTime: '18:12',
-      ishaTime: '19:47',
-      suhoorTime: '03:43',
-    );
-
-    // حفظ أوقات الأذان للغد في قاعدة البيانات
-    await adhanTimesDao.save(tomorrowAdhanTimes);
   }
 
   // تحميل بعض الأذكار
   Future<void> _loadSampleAthkar() async {
     List<Athkar> athkarList = [
       Athkar(
-        content: 'سبحان الله',
-        category: 'أذكار الصباح',
-        count: 33,
-        fadl:
-            'من ذكره في الصباح والمساء ثلاثة وثلاثين مرة كتبت له ثلاثة وثلاثون حسنة',
-      ),
-      Athkar(
         content: 'الحمد لله',
-        category: 'أذكار الصباح',
-        count: 33,
-        fadl:
-            'من ذكره في الصباح والمساء ثلاثة وثلاثين مرة كتبت له ثلاثة وثلاثون حسنة',
+        title: 'أذكار الصباح',
+       
       ),
-      Athkar(
-        content: 'الله أكبر',
-        category: 'أذكار الصباح',
-        count: 33,
-        fadl:
-            'من ذكره في الصباح والمساء ثلاثة وثلاثين مرة كتبت له ثلاثة وثلاثون حسنة',
-      ),
-      Athkar(
-        content: 'أستغفر الله',
-        category: 'أذكار المساء',
-        count: 100,
-        fadl: 'من استغفر الله مائة مرة غفرت ذنوبه ولو كانت مثل زبد البحر',
-      ),
+
+      
     ];
 
     for (var athkar in athkarList) {
@@ -265,35 +206,6 @@ class DatabaseManager {
     }
   }
 
-  // تحميل بعض الأدعية
-  Future<void> _loadSampleDailyPrayers() async {
-    List<DailyPrayer> prayers = [
-      DailyPrayer(
-        content:
-            'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ',
-        occasion: 'دعاء عام',
-        arabic:
-            'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ',
-        translation:
-            'ربنا أعطنا في الدنيا حسنة وفي الآخرة حسنة وقنا عذاب النار',
-        source: 'البقرة: 201',
-      ),
-      DailyPrayer(
-        content:
-            'اللَّهُمَّ إِنِّي أَسْأَلُكَ الْهُدَى، وَالتُّقَى، وَالْعَفَافَ، وَالْغِنَى',
-        occasion: 'دعاء الصباح',
-        arabic:
-            'اللَّهُمَّ إِنِّي أَسْأَلُكَ الْهُدَى، وَالتُّقَى، وَالْعَفَافَ، وَالْغِنَى',
-        translation: 'اللهم إني أسألك الهداية والتقوى والعفاف والغنى',
-        source: 'صحيح مسلم',
-      ),
-    ];
-
-    for (var prayer in prayers) {
-      await dailyPrayerDao.insert(prayer);
-    }
-  }
-
   // تحميل بعض المعلومات الإسلامية
   Future<void> _loadSampleIslamicInformation() async {
     List<IslamicInformation> information = [
@@ -316,5 +228,39 @@ class DatabaseManager {
     for (var info in information) {
       await islamicInformationDao.insert(info);
     }
+  }
+
+  // تحميل عبادات يومية افتراضية
+  Future<void> _loadSampleDailyWorship() async {
+    // التحقق من وجود عبادات يومية مسبقاً
+    bool exists = await dailyWorshipDao.exists();
+    if (exists) {
+      return; // لا تقم بإضافة عبادات يومية إذا كانت موجودة بالفعل
+    }
+
+    // إنشاء عبادة يومية افتراضية
+    DailyWorship defaultWorship = DailyWorship(
+      fajrPrayer: false,
+      dhuhrPrayer: false,
+      asrPrayer: false,
+      maghribPrayer: false,
+      ishaPrayer: false,
+      tahajjud: false,
+      qiyam: false,
+      quran: false,
+      thikr: false,
+    );
+
+    // حفظ العبادة اليومية في قاعدة البيانات
+    await dailyWorshipDao.saveDailyWorship(defaultWorship);
+  }
+
+  /// إدارة العبادات اليومية
+  Future<void> updateDailyWorship(DailyWorship dailyWorship) async {
+    await dailyWorshipDao.saveDailyWorship(dailyWorship);
+  }
+
+  Future<DailyWorship?> getDailyWorship() async {
+    return await dailyWorshipDao.getDailyWorship();
   }
 }

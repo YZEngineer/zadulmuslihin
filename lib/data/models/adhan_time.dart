@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 /// نموذج يمثل أوقات الأذان ليوم واحد
 class AdhanTimes {
   final int? id;
@@ -8,7 +10,7 @@ class AdhanTimes {
   final String asrTime; // وقت أذان العصر
   final String maghribTime; // وقت أذان المغرب
   final String ishaTime; // وقت أذان العشاء
-  final String? suhoorTime; // وقت السحر (اختياري)
+ 
 
   AdhanTimes({
     this.id,
@@ -19,8 +21,29 @@ class AdhanTimes {
     required this.asrTime,
     required this.maghribTime,
     required this.ishaTime,
-    this.suhoorTime,
-  });
+   
+  }) {
+    // التحقق من صحة صيغة أوقات الصلاة
+    if (!isValidTimeFormat(fajrTime)) {
+      throw FormatException('صيغة وقت الفجر غير صالحة: $fajrTime');
+    }
+    if (!isValidTimeFormat(sunriseTime)) {
+      throw FormatException('صيغة وقت الشروق غير صالحة: $sunriseTime');
+    }
+    if (!isValidTimeFormat(dhuhrTime)) {
+      throw FormatException('صيغة وقت الظهر غير صالحة: $dhuhrTime');
+    }
+    if (!isValidTimeFormat(asrTime)) {
+      throw FormatException('صيغة وقت العصر غير صالحة: $asrTime');
+    }
+    if (!isValidTimeFormat(maghribTime)) {
+      throw FormatException('صيغة وقت المغرب غير صالحة: $maghribTime');
+    }
+    if (!isValidTimeFormat(ishaTime)) {
+      throw FormatException('صيغة وقت العشاء غير صالحة: $ishaTime');
+    }
+   
+  }
 
   /// إنشاء نموذج من خريطة بيانات قاعدة البيانات
   factory AdhanTimes.fromMap(Map<String, dynamic> map) {
@@ -37,13 +60,12 @@ class AdhanTimes {
     return AdhanTimes(
       id: map['id'],
       date: dateTime,
-      fajrTime: map['fajr_time'] ?? '',
-      sunriseTime: map['sunrise_time'] ?? '',
-      dhuhrTime: map['dhuhr_time'] ?? '',
-      asrTime: map['asr_time'] ?? '',
-      maghribTime: map['maghrib_time'] ?? '',
-      ishaTime: map['isha_time'] ?? '',
-      suhoorTime: map['suhoor_time'],
+      fajrTime: map['fajr_time'] ?? '00:00',
+      sunriseTime: map['sunrise_time'] ?? '00:00',
+      dhuhrTime: map['dhuhr_time'] ?? '00:00',
+      asrTime: map['asr_time'] ?? '00:00',
+      maghribTime: map['maghrib_time'] ?? '00:00',
+      ishaTime: map['isha_time'] ?? '00:00',
     );
   }
 
@@ -51,14 +73,13 @@ class AdhanTimes {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'date': date.toIso8601String(), // تحويل التاريخ إلى صيغة نصية ISO
+      'date': DateFormat('yyyy-MM-dd').format(date),
       'fajr_time': fajrTime,
       'sunrise_time': sunriseTime,
       'dhuhr_time': dhuhrTime,
       'asr_time': asrTime,
       'maghrib_time': maghribTime,
       'isha_time': ishaTime,
-      'suhoor_time': suhoorTime,
     };
   }
 
@@ -78,7 +99,6 @@ class AdhanTimes {
     String? asrTime,
     String? maghribTime,
     String? ishaTime,
-    String? suhoorTime,
   }) {
     return AdhanTimes(
       id: id ?? this.id,
@@ -89,16 +109,14 @@ class AdhanTimes {
       asrTime: asrTime ?? this.asrTime,
       maghribTime: maghribTime ?? this.maghribTime,
       ishaTime: ishaTime ?? this.ishaTime,
-      suhoorTime: suhoorTime ?? this.suhoorTime,
     );
   }
 
   @override
   String toString() {
-    return 'AdhanTimes(id: $id, date: ${date.toIso8601String()}, '
+    return 'AdhanTimes(id: $id, date: ${DateFormat('yyyy-MM-dd').format(date)}, '
         'fajrTime: $fajrTime, sunriseTime: $sunriseTime, '
         'dhuhrTime: $dhuhrTime, asrTime: $asrTime, '
-        'maghribTime: $maghribTime, ishaTime: $ishaTime, '
-        'suhoorTime: $suhoorTime)';
+        'maghribTime: $maghribTime, ishaTime: $ishaTime';
   }
 }

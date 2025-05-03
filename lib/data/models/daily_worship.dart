@@ -1,91 +1,87 @@
-class Prayer {
-  final bool farz;
-  final bool sunnah;
-  final bool inMosque;
-
-  Prayer({
-    required this.farz,
-    required this.sunnah,
-    required this.inMosque,
-  });
-
-  factory Prayer.fromMap(Map<String, dynamic> map) {
-    return Prayer(
-      farz: map['farz'] ?? false,
-      sunnah: map['sunnah'] ?? false,
-      inMosque: map['inMosque'] ?? false,
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'farz': farz,
-      'sunnah': sunnah,
-      'inMosque': inMosque,
-    };
-  }
-}
-
 class DailyWorship {
-  final int? id;
-  final Prayer fajrPrayer;
-  final Prayer dhuhrPrayer;
-  final Prayer asrPrayer;
-  final Prayer maghribPrayer;
-  final Prayer ishaPrayer;
-  final bool suhoor;
+  final int id;
+  final bool fajrPrayer;
+  final bool dhuhrPrayer;
+  final bool asrPrayer;
+  final bool maghribPrayer;
+  final bool ishaPrayer;
   final bool tahajjud;
   final bool qiyam;
   final bool quran;
   final bool thikr;
-  final DateTime date;
 
   DailyWorship({
-    this.id,
+    this.id = 1,
     required this.fajrPrayer,
     required this.dhuhrPrayer,
     required this.asrPrayer,
     required this.maghribPrayer,
     required this.ishaPrayer,
-    required this.suhoor,
     required this.tahajjud,
     required this.qiyam,
     required this.quran,
     required this.thikr,
-    required this.date,
   });
 
   factory DailyWorship.fromMap(Map<String, dynamic> map) {
     return DailyWorship(
-      id: map['id'],
-      fajrPrayer: Prayer.fromMap(map['fajrPrayer']),
-      dhuhrPrayer: Prayer.fromMap(map['dhuhrPrayer']),
-      asrPrayer: Prayer.fromMap(map['asrPrayer']),
-      maghribPrayer: Prayer.fromMap(map['maghribPrayer']),
-      ishaPrayer: Prayer.fromMap(map['ishaPrayer']),
-      suhoor: map['suhoor'] ?? false,
-      tahajjud: map['tahajjud'] ?? false,
-      qiyam: map['qiyam'] ?? false,
-      quran: map['quran'] ?? false,
-      thikr: map['thikr'] ?? false,
-      date: DateTime.parse(map['date']),
+      id: map['id'] ?? 1,
+      fajrPrayer: map['fajrPrayer'] == 1 || map['fajrPrayer'] == true,
+      dhuhrPrayer: map['dhuhrPrayer'] == 1 || map['dhuhrPrayer'] == true,
+      asrPrayer: map['asrPrayer'] == 1 || map['asrPrayer'] == true,
+      maghribPrayer: map['maghribPrayer'] == 1 || map['maghribPrayer'] == true,
+      ishaPrayer: map['ishaPrayer'] == 1 || map['ishaPrayer'] == true,
+      tahajjud: map['tahajjud'] == 1 || map['tahajjud'] == true,
+      qiyam: map['qiyam'] == 1 || map['qiyam'] == true,
+      quran: map['quran'] == 1 || map['quran'] == true,
+      thikr: map['thikr'] == 1 || map['thikr'] == true,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'fajrPrayer': fajrPrayer.toMap(),
-      'dhuhrPrayer': dhuhrPrayer.toMap(),
-      'asrPrayer': asrPrayer.toMap(),
-      'maghribPrayer': maghribPrayer.toMap(),
-      'ishaPrayer': ishaPrayer.toMap(),
-      'suhoor': suhoor,
-      'tahajjud': tahajjud,
-      'qiyam': qiyam,
-      'quran': quran,
-      'thikr': thikr,
-      'date': date.toIso8601String(),
+      'fajrPrayer': fajrPrayer ? 1 : 0,
+      'dhuhrPrayer': dhuhrPrayer ? 1 : 0,
+      'asrPrayer': asrPrayer ? 1 : 0,
+      'maghribPrayer': maghribPrayer ? 1 : 0,
+      'ishaPrayer': ishaPrayer ? 1 : 0,
+      'tahajjud': tahajjud ? 1 : 0,
+      'qiyam': qiyam ? 1 : 0,
+      'quran': quran ? 1 : 0,
+      'thikr': thikr ? 1 : 0,
     };
+  }
+
+  /// إنشاء نسخة معدلة من هذا النموذج
+  DailyWorship copyWith({
+    bool? fajrPrayer,
+    bool? dhuhrPrayer,
+    bool? asrPrayer,
+    bool? maghribPrayer,
+    bool? ishaPrayer,
+    bool? tahajjud,
+    bool? qiyam,
+    bool? quran,
+    bool? thikr,
+  }) {
+    return DailyWorship(
+      fajrPrayer: fajrPrayer ?? this.fajrPrayer,
+      dhuhrPrayer: dhuhrPrayer ?? this.dhuhrPrayer,
+      asrPrayer: asrPrayer ?? this.asrPrayer,
+      maghribPrayer: maghribPrayer ?? this.maghribPrayer,
+      ishaPrayer: ishaPrayer ?? this.ishaPrayer,
+      tahajjud: tahajjud ?? this.tahajjud,
+      qiyam: qiyam ?? this.qiyam,
+      quran: quran ?? this.quran,
+      thikr: thikr ?? this.thikr,
+    );
+  }
+
+  @override
+  String toString() {
+    return 'DailyWorship(id: $id, fajrPrayer: $fajrPrayer, dhuhrPrayer: $dhuhrPrayer, '
+        'asrPrayer: $asrPrayer, maghribPrayer: $maghribPrayer, ishaPrayer: $ishaPrayer, '
+        'tahajjud: $tahajjud, qiyam: $qiyam, quran: $quran, thikr: $thikr)';
   }
 }

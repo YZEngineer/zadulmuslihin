@@ -63,7 +63,7 @@ class AdhanTimesDao {
     var results = await db.query(
       'adhan_times',
       where: 'date = ?',
-      whereArgs: [DateFormat('yyyy-MM-dd').format(date)],
+      whereArgs: [date.toIso8601String()],
       limit: 1,
     );
 

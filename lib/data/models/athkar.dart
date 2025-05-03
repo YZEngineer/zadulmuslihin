@@ -1,25 +1,19 @@
 class Athkar {
   final int? id;
   final String content;
-  final String? category;
-  final int count;
-  final String? fadl;
-  final String? source;
+  final String? title;
 
   Athkar({
     this.id,
     required this.content,
-    this.category,
-    this.count = 1,
-    this.fadl,
-    this.source,
+
+    this.title,
+
   }) {
     if (content.isEmpty) {
       throw ArgumentError('محتوى الذكر لا يمكن أن يكون فارغاً');
     }
-    if (count < 1) {
-      throw ArgumentError('عدد مرات الذكر يجب أن يكون على الأقل 1');
-    }
+
   }
 
   factory Athkar.fromMap(Map<String, dynamic> map) {
@@ -30,10 +24,8 @@ class Athkar {
     return Athkar(
       id: map['id'],
       content: map['content'],
-      category: map['category'],
-      count: map['count'] ?? 1,
-      fadl: map['fadl'],
-      source: map['source'],
+      title: map['title'],
+
     );
   }
 
@@ -41,34 +33,27 @@ class Athkar {
     return {
       'id': id,
       'content': content,
-      'category': category,
-      'count': count,
-      'fadl': fadl,
-      'source': source,
+      'title': title,
+
     };
   }
 
   Athkar copyWith({
     int? id,
     String? content,
-    String? category,
-    int? count,
-    String? fadl,
-    String? source,
+    String? title,
+
   }) {
     return Athkar(
       id: id ?? this.id,
       content: content ?? this.content,
-      category: category ?? this.category,
-      count: count ?? this.count,
-      fadl: fadl ?? this.fadl,
-      source: source ?? this.source,
+      title: title ?? this.title,
+
     );
   }
 
   @override
   String toString() {
-    return 'Athkar(id: $id, content: ${content.substring(0, content.length > 30 ? 30 : content.length)}..., '
-        'category: $category, count: $count, source: $source)';
+    return 'Athkar(id: $id, content: $content, title: $title)';
   }
 }

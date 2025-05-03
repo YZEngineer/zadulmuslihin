@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'database.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
@@ -64,7 +65,7 @@ class DatabaseHelper {
         'islamic_information',
         'hadiths',
         'athkar',
-        'daily_prayers'
+        'daily_worship'
       ];
 
       for (String table in requiredTables) {
@@ -123,6 +124,23 @@ class DatabaseHelper {
       )
     ''');
 
+    // Create Daily Worship table
+    await db.execute('''
+      CREATE TABLE ${DatabaseConstants.TABLE_DAILY_WORSHIP}(
+        ${DatabaseConstants.COLUMN_ID} INTEGER PRIMARY KEY CHECK (${DatabaseConstants.COLUMN_ID} = 1),
+        ${DatabaseConstants.COLUMN_FAJR_PRAYER} INTEGER NOT NULL DEFAULT 0,
+        ${DatabaseConstants.COLUMN_DHUHR_PRAYER} INTEGER NOT NULL DEFAULT 0,
+        ${DatabaseConstants.COLUMN_ASR_PRAYER} INTEGER NOT NULL DEFAULT 0,
+        ${DatabaseConstants.COLUMN_MAGHRIB_PRAYER} INTEGER NOT NULL DEFAULT 0,
+        ${DatabaseConstants.COLUMN_ISHA_PRAYER} INTEGER NOT NULL DEFAULT 0,
+        ${DatabaseConstants.COLUMN_TAHAJJUD} INTEGER NOT NULL DEFAULT 0,
+        ${DatabaseConstants.COLUMN_QIYAM} INTEGER NOT NULL DEFAULT 0,
+        ${DatabaseConstants.COLUMN_QURAN} INTEGER NOT NULL DEFAULT 0,
+        ${DatabaseConstants.COLUMN_THIKR} INTEGER NOT NULL DEFAULT 0,
+        ${DatabaseConstants.COLUMN_SUHOOR} INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+
     // Create Islamic Information table
     await db.execute('''
       CREATE TABLE islamic_information(
@@ -139,11 +157,9 @@ class DatabaseHelper {
       CREATE TABLE hadiths(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         content TEXT NOT NULL,
-        narrator TEXT,
         source TEXT,
-        book TEXT,
-        chapter TEXT,
-        hadithNumber TEXT
+        title TEXT,
+
       )
     ''');
 
@@ -159,17 +175,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // Create Daily Prayers table
-    await db.execute('''
-      CREATE TABLE daily_prayers(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        content TEXT NOT NULL,
-        occasion TEXT,
-        arabic TEXT,
-        translation TEXT,
-        source TEXT
-      )
-    ''');
+
 
     // إنشاء جداول المواقع
     if (version >= 2) {
@@ -214,7 +220,6 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE current_adhan(
         id INTEGER PRIMARY KEY CHECK (id = 1),
-        date TEXT NOT NULL,
         fajr_time TEXT NOT NULL,
         sunrise_time TEXT NOT NULL,
         dhuhr_time TEXT NOT NULL,

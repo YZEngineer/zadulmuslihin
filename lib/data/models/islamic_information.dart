@@ -3,14 +3,13 @@ class IslamicInformation {
   final String title;
   final String content;
   final String? category;
-  final String? source;
+
 
   IslamicInformation({
     this.id,
     required this.title,
     required this.content,
     this.category,
-    this.source,
   }) {
     if (title.isEmpty) {
       throw ArgumentError('عنوان المعلومة الإسلامية لا يمكن أن يكون فارغاً');
@@ -30,7 +29,7 @@ class IslamicInformation {
       title: map['title'],
       content: map['content'],
       category: map['category'],
-      source: map['source'],
+
     );
   }
 
@@ -40,7 +39,7 @@ class IslamicInformation {
       'title': title,
       'content': content,
       'category': category,
-      'source': source,
+
     };
   }
 
@@ -50,19 +49,19 @@ class IslamicInformation {
     String? title,
     String? content,
     String? category,
-    String? source,
+
   }) {
     return IslamicInformation(
       id: id ?? this.id,
       title: title ?? this.title,
       content: content ?? this.content,
       category: category ?? this.category,
-      source: source ?? this.source,
+
     );
   }
 
   @override
   String toString() {
-    return 'IslamicInformation(id: $id, title: $title, category: $category, source: $source)';
+    return 'IslamicInformation(id: $id, title: $title, content: $content, category: $category)';
   }
 }
