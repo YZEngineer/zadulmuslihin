@@ -1,39 +1,34 @@
-import 'package:intl/intl.dart';
-
 class DailyTask {
-  final int? id;
-  final String title;
-  final bool isCompleted;
-  final bool workOn;
-  final int? category;
+  final int id;
+  final String title; //عنوان المهمة
+  final bool isCompleted; //مكتمل
+  final bool workOn; //اعمل عليه
+  final int category; // رياضة, عادات ,اهداف
 
   DailyTask({
-    this.id,
+    required this.id,
     required this.title,
     this.isCompleted = false,
-    this.category,
+    required this.category,
     this.workOn = false,
   }) {
     if (title.isEmpty) {
-      throw ArgumentError('عنوان المهمة لا يمكن أن يكون فارغاً');
+      throw ArgumentError(
+          'البيانات غير كاملة: يجب توفير عنوان المهمة وتصنيف'); // ممكن حذفه لاحقا
     }
   }
 
   factory DailyTask.fromMap(Map<String, dynamic> map) {
-    if (map['title'] == null) {
-      throw ArgumentError('البيانات غير كاملة: يجب توفير عنوان المهمة');
+    if (map['title'] == null || map['category'] == null) {
+      throw ArgumentError('البيانات غير كاملة: يجب توفير عنوان المهمة وتصنيف');
     }
-
-   
-
-   
 
     return DailyTask(
       id: map['id'],
       title: map['title'],
       isCompleted: map['isCompleted'] == 1,
       category: map['category'],
-      workOn: map['workOn'],
+      workOn: map['workOn'] == 1,
     );
   }
 
@@ -43,7 +38,7 @@ class DailyTask {
       'title': title,
       'isCompleted': isCompleted ? 1 : 0,
       'category': category,
-      'workOn': workOn,
+      'workOn': workOn ? 1 : 0,
     };
   }
 
@@ -51,20 +46,17 @@ class DailyTask {
     int? id,
     String? title,
     bool? isCompleted,
-    String? category,
+    int? category,
     bool? workOn,
   }) {
     return DailyTask(
       id: id ?? this.id,
       title: title ?? this.title,
       isCompleted: isCompleted ?? this.isCompleted,
-      category: category as int?,
+      category: category ?? this.category,
       workOn: workOn ?? this.workOn,
     );
   }
-
-
-
 
   @override
   String toString() {

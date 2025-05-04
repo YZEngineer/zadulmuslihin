@@ -1,49 +1,45 @@
-
-
+/// نموذج يمثل سجل العبادات السابقة ونسب الإنجاز
 class WorshipHistory {
-  final int id;
-  final int date;
-  final int totalpray;
-  final bool tahajjud;
-  final bool qiyam;
-  final bool quran;
-  final bool thikr;
+  final int? id;
+  final int precentOf0; // نسبة إنجاز الفئة الأولى
+  final int precentOf1; // نسبة إنجاز الفئة الثانية
+  final int precentOf2; // نسبة إنجاز الفئة الثالثة
+  final int totalday; // إجمالي عدد الأيام
 
   WorshipHistory({
-    required this.id,
-    required this.date,
-    required this.totalpray,
-    required this.tahajjud,
-    required this.qiyam,
-    required this.quran,
-    required this.thikr,
+    this.id,
+    required this.precentOf0,
+    required this.precentOf1,
+    required this.precentOf2,
+    required this.totalday,
   });
 
-  factory WorshipHistory.fromJson(Map<String, dynamic> json) {
+  /// إنشاء نموذج من خريطة بيانات
+  factory WorshipHistory.fromMap(Map<String, dynamic> map) {
     return WorshipHistory(
-      id: json['id'],
-      date: json['date'],
-      totalpray: json['totalpray'],
-      tahajjud: json['tahajjud'],
-      qiyam: json['qiyam'],
-      quran: json['quran'],
-      thikr: json['thikr'],
+      id: map['id'],
+      precentOf0: map['precentOf0'],
+      precentOf1: map['precentOf1'],
+      precentOf2: map['precentOf2'],
+      totalday: map['totalday'],
     );
   }
 
-  Map<String, dynamic> toJson() {
+  /// تحويل النموذج إلى خريطة بيانات
+  Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'date': date,
-      'totalpray': totalpray,
-      'tahajjud': tahajjud, 
-      'qiyam': qiyam,
-      'quran': quran,
-      'thikr': thikr,
+      'precentOf0': precentOf0,
+      'precentOf1': precentOf1,
+      'precentOf2': precentOf2,
+      'totalday': totalday,
     };
   }
+
+  /// للتوافق مع الأنماط القديمة
+  factory WorshipHistory.fromJson(Map<String, dynamic> json) =>
+      WorshipHistory.fromMap(json);
+
+  /// للتوافق مع الأنماط القديمة
+  Map<String, dynamic> toJson() => toMap();
 }
-
-
-
-

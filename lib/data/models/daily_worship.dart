@@ -1,14 +1,15 @@
+/// نموذج يمثل العبادات اليومية للمستخدم
 class DailyWorship {
   final int id;
-  final bool fajrPrayer;
-  final bool dhuhrPrayer;
-  final bool asrPrayer;
-  final bool maghribPrayer;
-  final bool ishaPrayer;
-  final bool tahajjud;
-  final bool qiyam;
-  final bool quran;
-  final bool thikr;
+  final bool fajrPrayer; // صلاة الفجر
+  final bool dhuhrPrayer; // صلاة الظهر
+  final bool asrPrayer; // صلاة العصر
+  final bool maghribPrayer; // صلاة المغرب
+  final bool ishaPrayer; // صلاة العشاء
+  final bool tahajjud; // صلاة التهجد
+  final bool qiyam; // قيام الليل
+  final bool quran; // قراءة القرآن
+  final bool thikr; // الأذكار
 
   DailyWorship({
     this.id = 1,
@@ -23,6 +24,7 @@ class DailyWorship {
     required this.thikr,
   });
 
+  /// إنشاء نموذج من خريطة بيانات قاعدة البيانات
   factory DailyWorship.fromMap(Map<String, dynamic> map) {
     return DailyWorship(
       id: map['id'] ?? 1,
@@ -38,6 +40,7 @@ class DailyWorship {
     );
   }
 
+  /// تحويل النموذج إلى خريطة بيانات لحفظها في قاعدة البيانات
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -55,6 +58,7 @@ class DailyWorship {
 
   /// إنشاء نسخة معدلة من هذا النموذج
   DailyWorship copyWith({
+    int? id,
     bool? fajrPrayer,
     bool? dhuhrPrayer,
     bool? asrPrayer,
@@ -66,6 +70,7 @@ class DailyWorship {
     bool? thikr,
   }) {
     return DailyWorship(
+      id: id ?? this.id,
       fajrPrayer: fajrPrayer ?? this.fajrPrayer,
       dhuhrPrayer: dhuhrPrayer ?? this.dhuhrPrayer,
       asrPrayer: asrPrayer ?? this.asrPrayer,

@@ -2,9 +2,9 @@ import 'package:intl/intl.dart';
 
 /// نموذج يمثل الأذان الحالي (الأذان النشط حالياً)
 class CurrentAdhan {
-  final int? id;
-  final int? locationId;
-  final DateTime? date;
+  final int id;
+  final int locationId;
+  final DateTime date;
   final String fajrTime; // وقت أذان الفجر
   final String sunriseTime; // وقت الشروق
   final String dhuhrTime; // وقت أذان الظهر
@@ -12,25 +12,17 @@ class CurrentAdhan {
   final String maghribTime; // وقت أذان المغرب
   final String ishaTime; // وقت أذان العشاء
 
-
   CurrentAdhan({
-    this.id,
-    this.locationId,
-    this.date,  
+    required this.id,
+    required this.locationId,
+    required this.date,
     required this.fajrTime,
     required this.sunriseTime,
     required this.dhuhrTime,
     required this.asrTime,
     required this.maghribTime,
     required this.ishaTime,
-   
   }) {
-    if (date == null) {
-      throw ArgumentError('التاريخ لا يمكن أن يكون فارغاً');
-    }
-    if (locationId == null) {
-      throw ArgumentError('الموقع لا يمكن أن يكون فارغاً');
-    }
     // التحقق من صحة صيغة أوقات الصلاة
     if (!isValidTimeFormat(fajrTime)) {
       throw FormatException('صيغة وقت الفجر غير صالحة: $fajrTime');
@@ -61,19 +53,25 @@ class CurrentAdhan {
   /// إنشاء نموذج من خريطة بيانات
   factory CurrentAdhan.fromMap(Map<String, dynamic> map) {
     // معالجة التاريخ: يمكن أن يكون إما String أو DateTime
-
+    DateTime dateTime;
+    if (map['date'] is String) {
+      dateTime = DateTime.parse(map['date']);
+    } else if (map['date'] is DateTime) {
+      dateTime = map['date'];
+    } else {
+      throw FormatException('صيغة التاريخ غير صالحة: ${map['date']}');
+    }
 
     return CurrentAdhan(
       id: map['id'],
       locationId: map['location_id'],
-      date: map['date'] ?? DateTime.now(),
+      date: dateTime,
       fajrTime: map['fajr_time'] ?? '00:00',
       sunriseTime: map['sunrise_time'] ?? '00:00',
       dhuhrTime: map['dhuhr_time'] ?? '00:00',
       asrTime: map['asr_time'] ?? '00:00',
       maghribTime: map['maghrib_time'] ?? '00:00',
       ishaTime: map['isha_time'] ?? '00:00',
-     
     );
   }
 
@@ -82,7 +80,7 @@ class CurrentAdhan {
     return {
       'id': id,
       'location_id': locationId,
-      'date': date,
+      'date': DateFormat('yyyy-MM-dd').format(date),
       'fajr_time': fajrTime,
       'sunrise_time': sunriseTime,
       'dhuhr_time': dhuhrTime,
@@ -123,6 +121,6 @@ class CurrentAdhan {
         'fajrTime: $fajrTime, sunriseTime: $sunriseTime, '
         'dhuhrTime: $dhuhrTime, asrTime: $asrTime, '
         'maghribTime: $maghribTime, ishaTime: $ishaTime, '
-        'locationId: $locationId, date: ${date != null ? DateFormat('yyyy-MM-dd').format(date!) : 'null'}';
+        'locationId: $locationId, date: ${DateFormat('yyyy-MM-dd').format(date)})';
   }
 }

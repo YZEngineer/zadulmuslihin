@@ -10,7 +10,6 @@ class AdhanTimes {
   final String asrTime; // وقت أذان العصر
   final String maghribTime; // وقت أذان المغرب
   final String ishaTime; // وقت أذان العشاء
- 
 
   AdhanTimes({
     this.id,
@@ -21,7 +20,6 @@ class AdhanTimes {
     required this.asrTime,
     required this.maghribTime,
     required this.ishaTime,
-   
   }) {
     // التحقق من صحة صيغة أوقات الصلاة
     if (!isValidTimeFormat(fajrTime)) {
@@ -42,7 +40,6 @@ class AdhanTimes {
     if (!isValidTimeFormat(ishaTime)) {
       throw FormatException('صيغة وقت العشاء غير صالحة: $ishaTime');
     }
-   
   }
 
   /// إنشاء نموذج من خريطة بيانات قاعدة البيانات
@@ -117,6 +114,6 @@ class AdhanTimes {
     return 'AdhanTimes(id: $id, date: ${DateFormat('yyyy-MM-dd').format(date)}, '
         'fajrTime: $fajrTime, sunriseTime: $sunriseTime, '
         'dhuhrTime: $dhuhrTime, asrTime: $asrTime, '
-        'maghribTime: $maghribTime, ishaTime: $ishaTime';
+        'maghribTime: $maghribTime, ishaTime: $ishaTime)';
   }
 }
