@@ -5,7 +5,7 @@ class QuranVerses {
   final String theme;
 
   QuranVerses({
-    this.id ,
+    this.id,
     required this.text,
     required this.source,
     required this.theme,
@@ -21,13 +21,14 @@ class QuranVerses {
   }
 
   Map<String, dynamic> toMap() {
-    return {  
+    return {
       'id': id,
       'text': text,
       'source': source,
       'theme': theme,
     };
   }
+
   QuranVerses copyWith({
     int? id,
     String? text,
@@ -41,6 +42,4 @@ class QuranVerses {
       theme: theme ?? this.theme,
     );
   }
-
-
 }

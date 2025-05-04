@@ -1,61 +1,80 @@
-import 'package:sqflite/sqflite.dart';
 import '../models/current_location.dart';
-import '../models/location.dart';
+import 'database.dart';
 import 'database_helper.dart';
-import 'location_dao.dart';
+import 'package:intl/intl.dart';
 
+/// فئة للتعامل مع بيانات الموقع الحالي في قاعدة البيانات
 class CurrentLocationDao {
-  final dbHelper = DatabaseHelper.instance;
-  final locationDao = LocationDao();
+  final _databaseHelper = DatabaseHelper.instance;
+  final String _tableName = AppDatabase.tableCurrentLocation;
 
-  /// تعيين الموقع الحالي
-  Future<void> setCurrentLocation(int locationId) async {
-    Database db = await dbHelper.database;
+  /// إدراج أو تحديث بيانات الموقع الحالي
+  Future<int> insertOrUpdate(CurrentLocation location) async {
+    // التحقق من وجود سجل أولاً
+    final existingRecords = await getAll();
 
-    // التحقق من وجود السجل
-    var count = Sqflite.firstIntValue(
-        await db.rawQuery('SELECT COUNT(*) FROM current_location'));
-
-    CurrentLocation currentLocation = CurrentLocation(locationId: locationId);
-
-    if (count != null && count > 0) {
-      // تحديث السجل الموجود
-      await db.update(
-        'current_location',
-        currentLocation.toMap(),
-        where: 'id = 1',
-      );
-    } else {
+    if (existingRecords.isEmpty) {
       // إدراج سجل جديد
-      await db.insert('current_location', currentLocation.toMap());
+      return await _databaseHelper.insert(_tableName, location.toMap());
+    } else {
+      // تحديث السجل القائم (نحتفظ بسجل واحد فقط)
+      final existingId = existingRecords.first.id;
+
+      // تهيئة بيانات محدثة بالمعرف الحالي
+      Map<String, dynamic> updatedData = location.toMap();
+      updatedData['id'] = existingId;
+
+      return await _databaseHelper
+          .update(_tableName, updatedData, 'id = ?', [existingId]);
     }
   }
 
-  /// الحصول على معرف الموقع الحالي
-  Future<int?> getCurrentLocationId() async {
-    Database db = await dbHelper.database;
-    var results = await db.query(
-      'current_location',
-      where: 'id = 1',
-      limit: 1,
-    );
-
-    if (results.isEmpty) {
-      return null;
-    }
-
-    CurrentLocation currentLocation = CurrentLocation.fromMap(results.first);
-    return currentLocation.locationId;
+  /// الحصول على بيانات الموقع الحالي
+  Future<List<CurrentLocation>> getAll() async {
+    final result = await _databaseHelper.query(_tableName);
+    return result.map((map) => CurrentLocation.fromMap(map)).toList();
   }
 
-  /// الحصول على الموقع الحالي
-  Future<Location?> getCurrentLocation() async {
-    int? locationId = await getCurrentLocationId();
-
-    if (locationId == null) {
+  /// الحصول على الموقع الحالي إن وجد
+  Future<CurrentLocation?> getCurrent() async {
+    final records = await getAll();
+    if (records.isEmpty) {
       return null;
     }
+    return records.first;
+  }
 
-    return await locationDao.getLocationById(locationId);
+  /// تحديث المدينة والدولة
+  Future<int> updateLocationDetails(int id, String city, String country) async {
+    final now = DateTime.now();
+    final formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
+
+    return await _databaseHelper.update(
+        _tableName,
+        {'city': city, 'country': country, 'last_updated': formattedDate},
+        'id = ?',
+        [id]);
+  }
+
+  /// تحديث الإحداثيات
+  Future<int> updateCoordinates(
+      int id, double latitude, double longitude) async {
+    final now = DateTime.now();
+    final formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
+
+    return await _databaseHelper.update(
+        _tableName,
+        {
+          'latitude': latitude,
+          'longitude': longitude,
+          'last_updated': formattedDate
+        },
+        'id = ?',
+        [id]);
+  }
+
+  /// حذف جميع السجلات
+  Future<int> deleteAll() async {
+    return await _databaseHelper.delete(_tableName, '', []);
   }
 }

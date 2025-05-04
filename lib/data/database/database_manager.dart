@@ -1,266 +1,221 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:intl/intl.dart';
-import '../models/daily_task.dart';
-import '../models/adhan_time.dart';
-import '../models/islamic_information.dart';
+
+import 'database_helper.dart';
+import 'database.dart';
 import '../models/hadith.dart';
 import '../models/athkar.dart';
-import '../models/daily_worship.dart';
-import '../models/location.dart';
-import '../models/current_adhan.dart';
-import 'database_helper.dart';
-import 'daily_task_dao.dart';
-import 'adhan_times_dao.dart';
-import 'islamic_information_dao.dart';
-import 'hadith_dao.dart';
-import 'athkar_dao.dart';
-import 'location_dao.dart';
-import 'current_location_dao.dart';
-import 'current_adhan_dao.dart';
-import 'daily_worship_dao.dart';
+import '../models/quran_verses.dart';
+import '../models/islamic_information.dart';
+import '../models/daily_message.dart';
+import '../models/thought.dart';
 
+/// مدير قاعدة البيانات المسؤول عن تهيئة وتعبئة البيانات
 class DatabaseManager {
   static final DatabaseManager instance = DatabaseManager._privateConstructor();
-
-  final dailyTaskDao = DailyTaskDao();
-  final adhanTimesDao = AdhanTimesDao();
-  final islamicInformationDao = IslamicInformationDao();
-  final hadithDao = HadithDao();
-  final athkarDao = AthkarDao();
-  final locationDao = LocationDao();
-  final currentLocationDao = CurrentLocationDao();
-  final currentAdhanDao = CurrentAdhanDao();
-  final dailyWorshipDao = DailyWorshipDao();
+  final DatabaseHelper _databaseHelper = DatabaseHelper.instance;
+  bool _isInitialized = false;
 
   DatabaseManager._privateConstructor();
 
-  /// إعادة تعيين قاعدة البيانات
-  Future<void> resetDatabase() async {
-    print('جاري إعادة تعيين قاعدة البيانات...');
-    // استخدام دالة إعادة التعيين في DatabaseHelper
-    await DatabaseHelper.instance.resetDatabase();
+  /// تهيئة قاعدة البيانات وتعبئتها بالبيانات الأولية
+  Future<void> initialize() async {
+    if (_isInitialized) return;
+
+    await _databaseHelper.database; // التأكد من إنشاء قاعدة البيانات
+    await _populateInitialData();
+
+    _isInitialized = true;
   }
 
-  /// تهيئة قاعدة البيانات
-  Future<void> initializeDatabase() async {
-    try {
-      // التأكد من أن قاعدة البيانات جاهزة
-      await DatabaseHelper.instance.database;
+  /// تعبئة البيانات الأولية
+  Future<void> _populateInitialData() async {
+    // تعبئة الأحاديث النبوية
+    final hadiths = await _databaseHelper.query(AppDatabase.tableHadith);
+    if (hadiths.isEmpty) {
+      await _populateHadiths();
+    }
 
-      // تحميل بعض البيانات الافتراضية للاختبار
-      await _loadSampleData();
-    } catch (e) {
-      print('خطأ أثناء تهيئة قاعدة البيانات: $e');
+    // تعبئة الأذكار
+    final athkars = await _databaseHelper.query(AppDatabase.tableAthkar);
+    if (athkars.isEmpty) {
+      await _populateAthkar();
+    }
 
-      // في حالة وجود مشكلة، نقوم بإعادة تعيين قاعدة البيانات
-      print('جاري إعادة تعيين قاعدة البيانات...');
-      await DatabaseHelper.instance.resetDatabase();
+    // تعبئة آيات القرآن المختارة
+    final verses = await _databaseHelper.query(AppDatabase.tableQuranVerses);
+    if (verses.isEmpty) {
+      await _populateQuranVerses();
+    }
 
-      // محاولة تحميل البيانات مرة أخرى
-      await _loadSampleData();
+    // تعبئة المعلومات الإسلامية
+    final infos =
+        await _databaseHelper.query(AppDatabase.tableIslamicInformation);
+    if (infos.isEmpty) {
+      await _populateIslamicInformation();
+    }
+
+    // تعبئة الرسائل اليومية
+    final messages = await _databaseHelper.query(AppDatabase.tableDailyMessage);
+    if (messages.isEmpty) {
+      await _populateDailyMessages();
+    }
+
+    // تعبئة الأفكار
+    final thoughts = await _databaseHelper.query(AppDatabase.tableThought);
+    if (thoughts.isEmpty) {
+      await _populateThoughts();
     }
   }
 
-  /// تحميل بيانات افتراضية للاختبار
-  Future<void> _loadSampleData() async {
-    await _loadSampleLocations();
-    await _loadSampleAdhanTimes();
-    await _loadSampleCurrentAdhan();
-    await _loadSampleAthkar();
-    await _loadSampleHadiths();
-    await _loadSampleIslamicInformation();
-    await _loadSampleDailyWorship();
-  }
-
-  // تحميل مواقع افتراضية
-  Future<void> _loadSampleLocations() async {
-    // التحقق من وجود مواقع مسبقًا
-    List<Location> existingLocations = await locationDao.getAllLocations();
-    if (existingLocations.isNotEmpty) {
-      return; // لا تقم بإضافة مواقع إذا كانت موجودة بالفعل
-    }
-
-    // قائمة المواقع الافتراضية
-    List<Location> defaultLocations = [
-      Location(
-        name: "مكة المكرمة، السعودية",
-        latitude: 21.4225,
-        longitude: 39.8262,
-        country: "السعودية",
-        city: "مكة المكرمة",
-        methodId: 4, // أم القرى
-      ),
-      
-    ];
-
-    // إضافة المواقع الافتراضية
-    for (Location location in defaultLocations) {
-      int locationId = await locationDao.insert(location);
-
-      // تعيين أول موقع كموقع افتراضي
-      if (defaultLocations.indexOf(location) == 0) {
-        await currentLocationDao.setCurrentLocation(locationId);
-      }
-    }
-  }
-
-  // تحميل الأذان الحالي الافتراضي
-  Future<void> _loadSampleCurrentAdhan() async {
-    // التحقق من وجود أذان حالي مسبقًا
-    bool hasCurrentAdhan = await currentAdhanDao.hasCurrentAdhan();
-    if (hasCurrentAdhan) {
-      return; // لا تقم بإضافة أذان حالي إذا كان موجوداً بالفعل
-    }
-
-    // استخراج المعلومات من أوقات الأذان اليوم
-    String today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    AdhanTimes? todayTimes =
-        await adhanTimesDao.getAdhanTimesByDate(DateTime.parse(today));
-
-    if (todayTimes != null) {
-      // إنشاء كائن الأذان الحالي
-      CurrentAdhan currentAdhan = CurrentAdhan(
-        fajrTime: todayTimes.fajrTime,
-        sunriseTime: todayTimes.sunriseTime,
-        dhuhrTime: todayTimes.dhuhrTime,
-        asrTime: todayTimes.asrTime,
-        maghribTime: todayTimes.maghribTime,
-        ishaTime: todayTimes.ishaTime,
-       
-      );
-
-      // حفظ الأذان الحالي في قاعدة البيانات
-      await currentAdhanDao.setCurrentAdhan(currentAdhan);
-    }
-  }
-
-  // تحويل وقت بتنسيق HH:MM إلى دقائق منذ منتصف الليل
-  int _timeToMinutes(String time) {
-    List<String> parts = time.split(':');
-    return int.parse(parts[0]) * 60 + int.parse(parts[1]);
-  }
-
-  // تحميل أوقات أذان افتراضية
-  Future<void> _loadSampleAdhanTimes() async {
-    // اليوم الحالي
-    String today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-
-    // إنشاء أوقات الأذان لليوم الحالي
-    AdhanTimes todayAdhanTimes = AdhanTimes(
-      date: DateTime.parse(today),
-      fajrTime: '04:30',
-      sunriseTime: '06:05',
-      dhuhrTime: '12:15',
-      asrTime: '15:30',
-      maghribTime: '18:10',
-      ishaTime: '19:45',
-     
-    );
-
-    // حفظ أوقات الأذان في قاعدة البيانات
-    await adhanTimesDao.save(todayAdhanTimes);
-    await currentAdhanDao.setCurrentAdhan(todayAdhanTimes);
-
-
-  }
-
-  // تحميل بعض الأذكار
-  Future<void> _loadSampleAthkar() async {
-    List<Athkar> athkarList = [
-      Athkar(
-        content: 'الحمد لله',
-        title: 'أذكار الصباح',
-       
-      ),
-
-      
-    ];
-
-    for (var athkar in athkarList) {
-      await athkarDao.insert(athkar);
-    }
-  }
-
-  // تحميل بعض الأحاديث
-  Future<void> _loadSampleHadiths() async {
-    List<Hadith> hadiths = [
+  /// تعبئة الأحاديث النبوية
+  Future<void> _populateHadiths() async {
+    final hadiths = [
       Hadith(
-        content: 'إنما الأعمال بالنيات، وإنما لكل امرئ ما نوى',
-        narrator: 'عمر بن الخطاب',
-        source: 'متفق عليه',
-        book: 'صحيح البخاري',
-        hadithNumber: '1',
-      ),
+          content: "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى",
+          title: "النية والإخلاص",
+          source: "صحيح البخاري"),
       Hadith(
-        content: 'من حسن إسلام المرء تركه ما لا يعنيه',
-        narrator: 'أبو هريرة',
-        source: 'الترمذي',
-        book: 'سنن الترمذي',
-        hadithNumber: '2318',
-      ),
+          content: "من كان يؤمن بالله واليوم الآخر فليقل خيرا أو ليصمت",
+          title: "آداب الكلام",
+          source: "صحيح البخاري"),
+      Hadith(
+          content: "المسلم من سلم المسلمون من لسانه ويده",
+          title: "الأخلاق",
+          source: "صحيح البخاري"),
     ];
 
     for (var hadith in hadiths) {
-      await hadithDao.insert(hadith);
+      await _databaseHelper.insert(AppDatabase.tableHadith, hadith.toMap());
     }
   }
 
-  // تحميل بعض المعلومات الإسلامية
-  Future<void> _loadSampleIslamicInformation() async {
-    List<IslamicInformation> information = [
-      IslamicInformation(
-        title: 'أركان الإسلام',
-        content:
-            'أركان الإسلام خمسة: شهادة أن لا إله إلا الله وأن محمداً رسول الله، وإقام الصلاة، وإيتاء الزكاة، وصوم رمضان، وحج البيت لمن استطاع إليه سبيلا.',
-        category: 'أساسيات الإسلام',
-        source: 'حديث جبريل المشهور',
-      ),
-      IslamicInformation(
-        title: 'أركان الإيمان',
-        content:
-            'أركان الإيمان ستة: الإيمان بالله، وملائكته، وكتبه، ورسله، واليوم الآخر، والقدر خيره وشره.',
-        category: 'أساسيات الإسلام',
-        source: 'حديث جبريل المشهور',
-      ),
+  /// تعبئة الأذكار
+  Future<void> _populateAthkar() async {
+    final athkars = [
+      Athkar(
+          content:
+              "أصبحنا وأصبح الملك لله والحمد لله لا إله إلا الله وحده لا شريك له",
+          title: "أذكار الصباح"),
+      Athkar(
+          content:
+              "أمسينا وأمسى الملك لله والحمد لله لا إله إلا الله وحده لا شريك له",
+          title: "أذكار المساء"),
+      Athkar(content: "اللهم افتح لي أبواب رحمتك", title: "دعاء دخول المسجد"),
     ];
 
-    for (var info in information) {
-      await islamicInformationDao.insert(info);
+    for (var athkar in athkars) {
+      await _databaseHelper.insert(AppDatabase.tableAthkar, athkar.toMap());
     }
   }
 
-  // تحميل عبادات يومية افتراضية
-  Future<void> _loadSampleDailyWorship() async {
-    // التحقق من وجود عبادات يومية مسبقاً
-    bool exists = await dailyWorshipDao.exists();
-    if (exists) {
-      return; // لا تقم بإضافة عبادات يومية إذا كانت موجودة بالفعل
+  /// تعبئة آيات القرآن المختارة
+  Future<void> _populateQuranVerses() async {
+    final verses = [
+      QuranVerses(
+          text: "بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ",
+          source: "الفاتحة: 1",
+          theme: "البسملة"),
+      QuranVerses(
+          text: "لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا",
+          source: "البقرة: 286",
+          theme: "التيسير"),
+      QuranVerses(
+          text: "وَاعْتَصِمُوا بِحَبْلِ اللَّهِ جَمِيعًا وَلَا تَفَرَّقُوا",
+          source: "آل عمران: 103",
+          theme: "الوحدة"),
+    ];
+
+    for (var verse in verses) {
+      await _databaseHelper.insert(AppDatabase.tableQuranVerses, verse.toMap());
     }
-
-    // إنشاء عبادة يومية افتراضية
-    DailyWorship defaultWorship = DailyWorship(
-      fajrPrayer: false,
-      dhuhrPrayer: false,
-      asrPrayer: false,
-      maghribPrayer: false,
-      ishaPrayer: false,
-      tahajjud: false,
-      qiyam: false,
-      quran: false,
-      thikr: false,
-    );
-
-    // حفظ العبادة اليومية في قاعدة البيانات
-    await dailyWorshipDao.saveDailyWorship(defaultWorship);
   }
 
-  /// إدارة العبادات اليومية
-  Future<void> updateDailyWorship(DailyWorship dailyWorship) async {
-    await dailyWorshipDao.saveDailyWorship(dailyWorship);
+  /// تعبئة المعلومات الإسلامية
+  Future<void> _populateIslamicInformation() async {
+    final informations = [
+      IslamicInformation(
+          title: "أركان الإسلام",
+          content:
+              "أركان الإسلام خمسة: شهادة أن لا إله إلا الله وأن محمداً رسول الله، وإقام الصلاة، وإيتاء الزكاة، وصوم رمضان، وحج البيت لمن استطاع إليه سبيلاً.",
+          category: "أساسيات الإسلام"),
+      IslamicInformation(
+          title: "أركان الإيمان",
+          content:
+              "أركان الإيمان ستة: الإيمان بالله، وملائكته، وكتبه، ورسله، واليوم الآخر، والقدر خيره وشره.",
+          category: "العقيدة"),
+      IslamicInformation(
+          title: "شروط الصلاة",
+          content:
+              "شروط الصلاة: الإسلام، العقل، البلوغ، دخول الوقت، الطهارة من الحدث، الطهارة من النجس، ستر العورة، استقبال القبلة، النية.",
+          category: "الصلاة"),
+    ];
+
+    for (var info in informations) {
+      await _databaseHelper.insert(
+          AppDatabase.tableIslamicInformation, info.toMap());
+    }
   }
 
-  Future<DailyWorship?> getDailyWorship() async {
-    return await dailyWorshipDao.getDailyWorship();
+  /// تعبئة الرسائل اليومية
+  Future<void> _populateDailyMessages() async {
+    final currentDate = DateTime.now();
+
+    final messages = [
+      DailyMessage(
+          id: 1,
+          title: "الإخلاص في العمل",
+          content: "اجعل نيتك خالصة لله في كل أعمالك، فإنما الأعمال بالنيات",
+          category: 1,
+          source: "من أقوال السلف",
+          date: currentDate),
+      DailyMessage(
+          id: 2,
+          title: "صلة الرحم",
+          content: "حافظ على صلة الرحم فإنها تزيد في العمر وتوسع في الرزق",
+          category: 2,
+          source: "من الأحاديث النبوية",
+          date: currentDate),
+      DailyMessage(
+          id: 3,
+          title: "ذكر الله",
+          content: "اجعل لسانك رطباً بذكر الله، فإن ذكر الله طمأنينة للقلوب",
+          category: 3,
+          source: "من وصايا الصالحين",
+          date: currentDate),
+    ];
+
+    for (var message in messages) {
+      await _databaseHelper.insert(
+          AppDatabase.tableDailyMessage, message.toMap());
+    }
+  }
+
+  /// تعبئة الأفكار
+  Future<void> _populateThoughts() async {
+    final thoughts = [
+      Thought(
+          title: "تفكر", content: "تفكر في خلق السماوات والأرض", category: 1),
+      Thought(
+          title: "شكر",
+          content: "التفكر في نعم الله التي لا تعد ولا تحصى",
+          category: 1),
+      Thought(
+          title: "تذكير",
+          content: "تذكر الموت فإنه يزهد في الدنيا",
+          category: 2),
+    ];
+
+    for (var thought in thoughts) {
+      await _databaseHelper.insert(AppDatabase.tableThought, thought.toMap());
+    }
+  }
+
+  /// استعادة قاعدة البيانات وحذف جميع البيانات وإعادة التهيئة
+  Future<void> resetAndInitialize() async {
+    await _databaseHelper.resetDatabase();
+    _isInitialized = false;
+    await initialize();
   }
 }

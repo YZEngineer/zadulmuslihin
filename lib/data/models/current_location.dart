@@ -35,6 +35,17 @@ class CurrentLocation {
     };
   }
 
+  /// إنشاء نسخة معدلة من هذا النموذج
+  CurrentLocation copyWith({
+    int? id,
+    int? locationId,
+  }) {
+    return CurrentLocation(
+      id: id ?? this.id,
+      locationId: locationId ?? this.locationId,
+    );
+  }
+
   @override
   String toString() {
     return 'CurrentLocation(id: $id, locationId: $locationId)';

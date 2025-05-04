@@ -9,7 +9,6 @@ class Hadith {
     required this.content,
     this.source,
     this.title,
-   
   }) {
     if (content.isEmpty) {
       throw ArgumentError('محتوى الحديث لا يمكن أن يكون فارغاً');
@@ -26,7 +25,6 @@ class Hadith {
       content: map['content'],
       title: map['title'],
       source: map['source'],
-     
     );
   }
 
@@ -36,7 +34,6 @@ class Hadith {
       'content': content,
       'title': title,
       'source': source,
-     
     };
   }
 
@@ -46,17 +43,14 @@ class Hadith {
     String? narrator,
     String? source,
     String? title,
-   
   }) {
     return Hadith(
       id: id ?? this.id,
       content: content ?? this.content,
       source: source ?? this.source,
       title: title ?? this.title,
-     
     );
   }
-
 
   @override
   String toString() {

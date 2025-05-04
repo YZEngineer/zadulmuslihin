@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-
+import 'data/database/database_manager.dart';
 import 'view/home.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // تهيئة قاعدة البيانات
+  await DatabaseManager.instance.initialize();
 
   runApp(const MyApp());
 }

@@ -1,228 +1,107 @@
 import '../models/daily_worship.dart';
-import 'database_helper.dart';
 import 'database.dart';
-import 'package:sqflite/sqflite.dart';
+import 'database_helper.dart';
+import 'package:intl/intl.dart';
 
-/// فئة مسؤولة عن عمليات قاعدة البيانات للعبادات اليومية
+/// فئة للتعامل مع بيانات العبادات اليومية في قاعدة البيانات
 class DailyWorshipDao {
-  final tableName = DatabaseConstants.TABLE_DAILY_WORSHIP;
-  final int fixedId = 1; // المعرف الثابت للعبادات اليومية
+  final _databaseHelper = DatabaseHelper.instance;
+  final String _tableName = AppDatabase.tableDailyWorship;
 
-  /// التحقق من وجود بيانات العبادات اليومية
-  Future<bool> exists() async {
-    final db = await DatabaseHelper.instance.database;
-    final List<Map<String, dynamic>> result = await db.query(
-      tableName,
-      where: '${DatabaseConstants.COLUMN_ID} = ?',
-      whereArgs: [fixedId],
-      limit: 1,
-    );
-    return result.isNotEmpty;
+  /// إدراج عبادة يومية جديدة أو تحديث القائمة
+  Future<int> insert(DailyWorship dailyWorship) async {
+    return await _databaseHelper.insert(_tableName, dailyWorship.toMap());
   }
 
-  /// الحصول على بيانات العبادات اليومية
-  Future<DailyWorship?> getDailyWorship() async {
-    final db = await DatabaseHelper.instance.database;
-    final List<Map<String, dynamic>> result = await db.query(
-      tableName,
-      where: '${DatabaseConstants.COLUMN_ID} = ?',
-      whereArgs: [fixedId],
-      limit: 1,
-    );
-
-    if (result.isNotEmpty) {
-      return DailyWorship.fromMap(_adaptFromDatabase(result.first));
-    }
-    return null;
+  /// تحديث عبادة يومية موجودة
+  Future<int> update(DailyWorship dailyWorship) async {
+    return await _databaseHelper
+        .update(_tableName, dailyWorship.toMap(), 'id = ?', [dailyWorship.id]);
   }
 
-  /// إضافة أو تحديث العبادات اليومية
-  Future<void> saveDailyWorship(DailyWorship dailyWorship) async {
-    final db = await DatabaseHelper.instance.database;
-    final bool exists = await this.exists();
-
-    // إضافة تأكيد أن المعرف = 1
-    final Map<String, dynamic> data = _adaptToDatabase(dailyWorship.toMap());
-    data[DatabaseConstants.COLUMN_ID] = fixedId;
-
-    if (exists) {
-      // تحديث السجل الموجود
-      await db.update(
-        tableName,
-        data,
-        where: '${DatabaseConstants.COLUMN_ID} = ?',
-        whereArgs: [fixedId],
-      );
-    } else {
-      // إضافة سجل جديد
-      await db.insert(tableName, data);
-    }
-  }
-
-  /// حذف عبادة يومية
-  Future<int> deleteDailyWorship(int id) async {
-    final db = await DatabaseHelper.instance.database;
-    return await db.delete(
-      tableName,
-      where: '${DatabaseConstants.COLUMN_ID} = ?',
+  /// الحصول على عبادات يوم حسب المعرف
+  Future<DailyWorship?> getById(int id) async {
+    final result = await _databaseHelper.query(
+      _tableName,
+      where: 'id = ?',
       whereArgs: [id],
     );
+
+    if (result.isEmpty) {
+      return null;
+    }
+
+    return DailyWorship.fromMap(result.first);
   }
 
-  /// الحصول على جميع العبادات اليومية
-  Future<List<DailyWorship>> getAllDailyWorship() async {
-    final db = await DatabaseHelper.instance.database;
-    final List<Map<String, dynamic>> maps = await db.query(tableName);
-
-    return List.generate(maps.length, (i) {
-      return DailyWorship.fromMap(_adaptFromDatabase(maps[i]));
-    });
+  /// الحصول على جميع سجلات العبادات
+  Future<List<DailyWorship>> getAll() async {
+    final result = await _databaseHelper.query(_tableName);
+    return result.map((map) => DailyWorship.fromMap(map)).toList();
   }
 
-  /// الحصول على عبادة يومية محددة بواسطة المعرف
-  Future<DailyWorship?> getDailyWorshipById(int id) async {
-    final db = await DatabaseHelper.instance.database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      tableName,
-      where: '${DatabaseConstants.COLUMN_ID} = ?',
-      whereArgs: [id],
-      limit: 1,
+  /// تحديث حالة صلاة معينة
+  Future<int> updatePrayerStatus(
+      int id, String prayerName, bool completed) async {
+    // تحديث حالة الصلاة المحددة
+    final value = completed ? 1 : 0;
+    final columnName = '${prayerName.toLowerCase()}_prayer';
+
+    final result = await _databaseHelper.update(
+        _tableName, {columnName: value}, 'id = ?', [id]);
+
+    return result;
+  }
+
+  /// حذف سجل عبادة بواسطة المعرف
+  Future<int> delete(int id) async {
+    return await _databaseHelper.delete(
+      _tableName,
+      'id = ?',
+      [id],
     );
-
-    if (maps.isNotEmpty) {
-      return DailyWorship.fromMap(_adaptFromDatabase(maps.first));
-    }
-    return null;
   }
 
-  /// الحصول على آخر عبادة يومية
-  Future<DailyWorship?> getLatestDailyWorship() async {
-    final db = await DatabaseHelper.instance.database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      tableName,
-      orderBy: '${DatabaseConstants.COLUMN_ID} DESC',
-      limit: 1,
-    );
+  /// الحصول على إحصائيات العبادات
+  Future<Map<String, int>> getStatistics() async {
+    final worships = await getAll();
 
-    if (maps.isNotEmpty) {
-      return DailyWorship.fromMap(_adaptFromDatabase(maps.first));
-    }
-    return null;
-  }
-
-  /// البحث عن العبادات اليومية
-  Future<List<DailyWorship>> searchDailyWorship({
-    bool? hasFajrPrayer,
-    bool? hasDhuhrPrayer,
-    bool? hasAsrPrayer,
-    bool? hasMaghribPrayer,
-    bool? hasIshaPrayer,
-    bool? hasTahajjud,
-    bool? hasQiyam,
-    bool? hasQuran,
-    bool? hasThikr,
-    bool? hasSuhoor,
-  }) async {
-    final db = await DatabaseHelper.instance.database;
-
-    List<String> conditions = [];
-    List<dynamic> args = [];
-
-    if (hasFajrPrayer != null) {
-      conditions.add('${DatabaseConstants.COLUMN_FAJR_PRAYER} = ?');
-      args.add(hasFajrPrayer ? 1 : 0);
-    }
-
-    if (hasDhuhrPrayer != null) {
-      conditions.add('${DatabaseConstants.COLUMN_DHUHR_PRAYER} = ?');
-      args.add(hasDhuhrPrayer ? 1 : 0);
-    }
-
-    if (hasAsrPrayer != null) {
-      conditions.add('${DatabaseConstants.COLUMN_ASR_PRAYER} = ?');
-      args.add(hasAsrPrayer ? 1 : 0);
-    }
-
-    if (hasMaghribPrayer != null) {
-      conditions.add('${DatabaseConstants.COLUMN_MAGHRIB_PRAYER} = ?');
-      args.add(hasMaghribPrayer ? 1 : 0);
-    }
-
-    if (hasIshaPrayer != null) {
-      conditions.add('${DatabaseConstants.COLUMN_ISHA_PRAYER} = ?');
-      args.add(hasIshaPrayer ? 1 : 0);
-    }
-
-    if (hasTahajjud != null) {
-      conditions.add('${DatabaseConstants.COLUMN_TAHAJJUD} = ?');
-      args.add(hasTahajjud ? 1 : 0);
-    }
-
-    if (hasQiyam != null) {
-      conditions.add('${DatabaseConstants.COLUMN_QIYAM} = ?');
-      args.add(hasQiyam ? 1 : 0);
-    }
-
-    if (hasQuran != null) {
-      conditions.add('${DatabaseConstants.COLUMN_QURAN} = ?');
-      args.add(hasQuran ? 1 : 0);
-    }
-
-    if (hasThikr != null) {
-      conditions.add('${DatabaseConstants.COLUMN_THIKR} = ?');
-      args.add(hasThikr ? 1 : 0);
-    }
-
-    if (hasSuhoor != null) {
-      conditions.add('${DatabaseConstants.COLUMN_SUHOOR} = ?');
-      args.add(hasSuhoor ? 1 : 0);
-    }
-
-    String whereClause =
-        conditions.isNotEmpty ? conditions.join(' AND ') : '1=1';
-
-    final List<Map<String, dynamic>> maps = await db.query(
-      tableName,
-      where: whereClause,
-      whereArgs: args,
-    );
-
-    return List.generate(maps.length, (i) {
-      return DailyWorship.fromMap(_adaptFromDatabase(maps[i]));
-    });
-  }
-
-  /// تعديل البيانات المستلمة من قاعدة البيانات لتتوافق مع نموذج البيانات
-  Map<String, dynamic> _adaptFromDatabase(Map<String, dynamic> map) {
-    return {
-      'id': map[DatabaseConstants.COLUMN_ID],
-      'fajrPrayer': map[DatabaseConstants.COLUMN_FAJR_PRAYER] == 1,
-      'dhuhrPrayer': map[DatabaseConstants.COLUMN_DHUHR_PRAYER] == 1,
-      'asrPrayer': map[DatabaseConstants.COLUMN_ASR_PRAYER] == 1,
-      'maghribPrayer': map[DatabaseConstants.COLUMN_MAGHRIB_PRAYER] == 1,
-      'ishaPrayer': map[DatabaseConstants.COLUMN_ISHA_PRAYER] == 1,
-      'tahajjud': map[DatabaseConstants.COLUMN_TAHAJJUD] == 1,
-      'qiyam': map[DatabaseConstants.COLUMN_QIYAM] == 1,
-      'quran': map[DatabaseConstants.COLUMN_QURAN] == 1,
-      'thikr': map[DatabaseConstants.COLUMN_THIKR] == 1,
-      'suhoor': map[DatabaseConstants.COLUMN_SUHOOR] == 1,
+    // تهيئة الإحصائيات
+    Map<String, int> stats = {
+      'fajr_completed': 0,
+      'dhuhr_completed': 0,
+      'asr_completed': 0,
+      'maghrib_completed': 0,
+      'isha_completed': 0,
+      'tahajjud_completed': 0,
+      'qiyam_completed': 0,
+      'quran_completed': 0,
+      'thikr_completed': 0,
+      'total_records': worships.length,
     };
-  }
 
-  /// تعديل البيانات المرسلة إلى قاعدة البيانات لتتوافق مع هيكل الجدول
-  Map<String, dynamic> _adaptToDatabase(Map<String, dynamic> map) {
-    return {
-      DatabaseConstants.COLUMN_ID: fixedId, // إضافة المعرف الثابت
-      DatabaseConstants.COLUMN_FAJR_PRAYER: map['fajrPrayer'] ? 1 : 0,
-      DatabaseConstants.COLUMN_DHUHR_PRAYER: map['dhuhrPrayer'] ? 1 : 0,
-      DatabaseConstants.COLUMN_ASR_PRAYER: map['asrPrayer'] ? 1 : 0,
-      DatabaseConstants.COLUMN_MAGHRIB_PRAYER: map['maghribPrayer'] ? 1 : 0,
-      DatabaseConstants.COLUMN_ISHA_PRAYER: map['ishaPrayer'] ? 1 : 0,
-      DatabaseConstants.COLUMN_TAHAJJUD: map['tahajjud'] ? 1 : 0,
-      DatabaseConstants.COLUMN_QIYAM: map['qiyam'] ? 1 : 0,
-      DatabaseConstants.COLUMN_QURAN: map['quran'] ? 1 : 0,
-      DatabaseConstants.COLUMN_THIKR: map['thikr'] ? 1 : 0,
-      DatabaseConstants.COLUMN_SUHOOR: map['suhoor'] ? 1 : 0,
-    };
+    // حساب الإحصائيات
+    for (var worship in worships) {
+      if (worship.fajrPrayer)
+        stats['fajr_completed'] = (stats['fajr_completed'] ?? 0) + 1;
+      if (worship.dhuhrPrayer)
+        stats['dhuhr_completed'] = (stats['dhuhr_completed'] ?? 0) + 1;
+      if (worship.asrPrayer)
+        stats['asr_completed'] = (stats['asr_completed'] ?? 0) + 1;
+      if (worship.maghribPrayer)
+        stats['maghrib_completed'] = (stats['maghrib_completed'] ?? 0) + 1;
+      if (worship.ishaPrayer)
+        stats['isha_completed'] = (stats['isha_completed'] ?? 0) + 1;
+      if (worship.tahajjud)
+        stats['tahajjud_completed'] = (stats['tahajjud_completed'] ?? 0) + 1;
+      if (worship.qiyam)
+        stats['qiyam_completed'] = (stats['qiyam_completed'] ?? 0) + 1;
+      if (worship.quran)
+        stats['quran_completed'] = (stats['quran_completed'] ?? 0) + 1;
+      if (worship.thikr)
+        stats['thikr_completed'] = (stats['thikr_completed'] ?? 0) + 1;
+    }
+
+    return stats;
   }
 }

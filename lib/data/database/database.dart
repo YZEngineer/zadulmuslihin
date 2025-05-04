@@ -1,78 +1,231 @@
-/// ثوابت قاعدة البيانات
-class DatabaseConstants {
-  // اسم قاعدة البيانات
-  static const String DATABASE_NAME = 'zad_muslimin.db';
-  
-  // إصدار قاعدة البيانات
-  static const int DATABASE_VERSION = 1;
-  
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
+
+/// تعريف جداول قاعدة البيانات وإصداراتها
+class AppDatabase {
+  static const String databaseName = 'zadulmuslihin.db';
+  static const int databaseVersion = 1;
+
   // أسماء الجداول
-  static const String TABLE_ADHAN_TIMES = 'adhan_times';
-  static const String TABLE_CURRENT_ADHAN = 'current_adhan';
-  static const String TABLE_ATHKAR = 'athkar';
-  static const String TABLE_DAILY_TASK = 'daily_task';
-  static const String TABLE_DAILY_WORSHIP = 'daily_worship';
-  static const String TABLE_HADITH = 'hadith';
-  static const String TABLE_ISLAMIC_INFORMATION = 'islamic_information';
-  static const String TABLE_LOCATION = 'location';
-  static const String TABLE_CURRENT_LOCATION = 'current_location';
-  
-  // أسماء الأعمدة المشتركة
-  static const String COLUMN_ID = 'id';
-  static const String COLUMN_DATE = 'date';
-  static const String COLUMN_TITLE = 'title';
-  static const String COLUMN_CONTENT = 'content';
-  static const String COLUMN_CATEGORY = 'category';
-  static const String COLUMN_SOURCE = 'source';
-  
-  // أعمدة أوقات الأذان
-  static const String COLUMN_FAJR_TIME = 'fajr_time';
-  static const String COLUMN_SUNRISE_TIME = 'sunrise_time';
-  static const String COLUMN_DHUHR_TIME = 'dhuhr_time';
-  static const String COLUMN_ASR_TIME = 'asr_time';
-  static const String COLUMN_MAGHRIB_TIME = 'maghrib_time';
-  static const String COLUMN_ISHA_TIME = 'isha_time';
-  static const String COLUMN_SUHOOR_TIME = 'suhoor_time';
-  
-  // أعمدة الموقع
-  static const String COLUMN_NAME = 'name';
-  static const String COLUMN_LATITUDE = 'latitude';
-  static const String COLUMN_LONGITUDE = 'longitude';
-  static const String COLUMN_COUNTRY = 'country';
-  static const String COLUMN_CITY = 'city';
-  static const String COLUMN_METHOD_ID = 'method_id';
-  static const String COLUMN_LOCATION_ID = 'location_id';
-  
-  // أعمدة المهام اليومية
-  static const String COLUMN_DESCRIPTION = 'description';
-  static const String COLUMN_IS_COMPLETED = 'isCompleted';
-  static const String COLUMN_DUE_DATE = 'due_date';
-  static const String COLUMN_CREATED_AT = 'created_at';
-  
-  // أعمدة الأذكار
-  static const String COLUMN_COUNT = 'count';
-  static const String COLUMN_FADL = 'fadl';
-  
-  // أعمدة الحديث
-  static const String COLUMN_NARRATOR = 'narrator';
-  static const String COLUMN_BOOK = 'book';
-  static const String COLUMN_CHAPTER = 'chapter';
-  static const String COLUMN_HADITH_NUMBER = 'hadithNumber';
-  
-  // أعمدة العبادة اليومية
-  static const String COLUMN_FAJR_PRAYER = 'fajr_prayer';
-  static const String COLUMN_DHUHR_PRAYER = 'dhuhr_prayer';
-  static const String COLUMN_ASR_PRAYER = 'asr_prayer';
-  static const String COLUMN_MAGHRIB_PRAYER = 'maghrib_prayer';
-  static const String COLUMN_ISHA_PRAYER = 'isha_prayer';
-  static const String COLUMN_SUHOOR = 'suhoor';
-  static const String COLUMN_TAHAJJUD = 'tahajjud';
-  static const String COLUMN_QIYAM = 'qiyam';
-  static const String COLUMN_QURAN = 'quran';
-  static const String COLUMN_THIKR = 'thikr';
-  
-  // أعمدة الصلاة
-  static const String COLUMN_FARZ = 'farz';
-  static const String COLUMN_SUNNAH = 'sunnah';
-  static const String COLUMN_IN_MOSQUE = 'in_mosque';
+  static const String tableAdhanTimes = 'adhan_times';
+  static const String tableAthkar = 'athkar';
+  static const String tableCurrentAdhan = 'current_adhan';
+  static const String tableCurrentLocation = 'current_location';
+  static const String tableDailyTask = 'daily_tasks';
+  static const String tableDailyWorship = 'daily_worship';
+  static const String tableHadith = 'hadith';
+  static const String tableIslamicInformation = 'islamic_information';
+  static const String tableLocation = 'locations';
+  static const String tableWorshipHistory = 'worship_history';
+  static const String tableThoughtHistory = 'thought_history';
+  static const String tableThought = 'thought';
+  static const String tableQuranVerses = 'quran_verses';
+  static const String tableDailyMessage = 'daily_message';
+  static const String tableMyLibrary = 'my_library';
+
+  /// إنشاء قاعدة البيانات
+  static Future<Database> getDatabase() async {
+    return openDatabase(
+      join(await getDatabasesPath(), databaseName),
+      onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
+      version: databaseVersion,
+    );
+  }
+
+  /// إنشاء جداول قاعدة البيانات
+  static Future<void> _onCreate(Database db, int version) async {
+    // جدول أوقات الأذان
+    await db.execute('''
+      CREATE TABLE $tableAdhanTimes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date TEXT NOT NULL,
+        fajr_time TEXT NOT NULL,
+        sunrise_time TEXT NOT NULL,
+        dhuhr_time TEXT NOT NULL,
+        asr_time TEXT NOT NULL,
+        maghrib_time TEXT NOT NULL,
+        isha_time TEXT NOT NULL
+      )
+    ''');
+
+    // جدول الأذكار
+    await db.execute('''
+      CREATE TABLE $tableAthkar (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        category TEXT NOT NULL,
+        count INTEGER NOT NULL,
+        reference TEXT
+      )
+    ''');
+
+    // جدول الأذان الحالي
+    await db.execute('''
+      CREATE TABLE $tableCurrentAdhan (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        prayer_name TEXT NOT NULL,
+        prayer_time TEXT NOT NULL,
+        next_prayer_name TEXT NOT NULL,
+        next_prayer_time TEXT NOT NULL,
+        current_date TEXT NOT NULL,
+        notification_enabled INTEGER NOT NULL
+      )
+    ''');
+
+    // جدول الموقع الحالي
+    await db.execute('''
+      CREATE TABLE $tableCurrentLocation (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        latitude REAL NOT NULL,
+        longitude REAL NOT NULL,
+        city TEXT,
+        country TEXT,
+        last_updated TEXT NOT NULL
+      )
+    ''');
+
+    // جدول المهام اليومية
+    await db.execute('''
+      CREATE TABLE $tableDailyTask (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        description TEXT,
+        is_completed INTEGER NOT NULL,
+        date TEXT NOT NULL,
+        importance INTEGER NOT NULL,
+        category TEXT NOT NULL
+      )
+    ''');
+
+    // جدول العبادات اليومية
+    await db.execute('''
+      CREATE TABLE $tableDailyWorship (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date TEXT NOT NULL,
+        fajr_prayer INTEGER NOT NULL,
+        dhuhr_prayer INTEGER NOT NULL,
+        asr_prayer INTEGER NOT NULL,
+        maghrib_prayer INTEGER NOT NULL,
+        isha_prayer INTEGER NOT NULL,
+        morning_athkar INTEGER NOT NULL,
+        evening_athkar INTEGER NOT NULL,
+        quran_reading INTEGER NOT NULL
+      )
+    ''');
+
+    // جدول الأحاديث
+    await db.execute('''
+      CREATE TABLE $tableHadith (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        conte nt TEXT NOT NULL,
+        title TEXT NOT NULL,
+        source TEXT NOT NULL,
+      )
+    ''');
+
+    // جدول المعلومات الإسلامية
+    await db.execute('''
+      CREATE TABLE $tableIslamicInformation (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        category TEXT NOT NULL,
+        source TEXT,
+        date_added TEXT NOT NULL
+      )
+    ''');
+
+    // جدول المواقع
+    await db.execute('''
+      CREATE TABLE $tableLocation (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        latitude REAL NOT NULL,
+        longitude REAL NOT NULL,
+        city TEXT,
+        country TEXT,
+        timezone TEXT,
+        is_current INTEGER NOT NULL,
+        calculation_method TEXT NOT NULL,
+        adjustment_method TEXT NOT NULL
+      )
+    ''');
+
+    // جدول سجل العبادات
+    await db.execute('''
+      CREATE TABLE $tableWorshipHistory (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date TEXT NOT NULL,
+        type TEXT NOT NULL,
+        details TEXT NOT NULL
+      )
+    ''');
+
+    // جدول سجل الأفكار
+    await db.execute('''
+      CREATE TABLE $tableThoughtHistory (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        precentOf0 INTEGER NOT NULL,
+        precentOf1 INTEGER NOT NULL,
+        precentOf2 INTEGER NOT NULL,
+        totalday INTEGER NOT NULL
+      )
+    ''');
+
+    // جدول الأفكار
+    await db.execute('''
+      CREATE TABLE $tableThought (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        category INTEGER NOT NULL,
+        day INTEGER NOT NULL
+      )
+    ''');
+
+    // جدول آيات القرآن
+    await db.execute('''
+      CREATE TABLE $tableQuranVerses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        text TEXT NOT NULL,
+        source TEXT NOT NULL,
+        theme TEXT,
+      )
+    ''');
+
+    // جدول الرسائل اليومية
+    await db.execute('''
+      CREATE TABLE $tableDailyMessage (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        date TEXT NOT NULL,
+        category INTEGER NOT NULL,
+        source TEXT NOT NULL
+      )
+    ''');
+
+    // جدول مكتبتي
+    await db.execute('''
+      CREATE TABLE $tableMyLibrary (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        type TEXT NOT NULL,
+        date_added TEXT NOT NULL,
+        favorite INTEGER NOT NULL
+      )
+    ''');
+  }
+
+  /// ترقية قاعدة البيانات
+  static Future<void> _onUpgrade(
+      Database db, int oldVersion, int newVersion) async {
+    // سيتم تنفيذ هذا عند ترقية الإصدار
+    if (oldVersion < 2) {
+      // مثال على ترقية مستقبلية
+    }
+  }
 }

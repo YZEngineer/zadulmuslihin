@@ -1,64 +1,95 @@
-import 'package:sqflite/sqflite.dart';
 import '../models/hadith.dart';
+import 'database.dart';
 import 'database_helper.dart';
 
+/// فئة للتعامل مع بيانات الأحاديث في قاعدة البيانات
 class HadithDao {
-  final dbHelper = DatabaseHelper.instance;
+  final _databaseHelper = DatabaseHelper.instance;
+  final String _tableName = AppDatabase.tableHadith;
 
+  /// إدراج حديث جديد
   Future<int> insert(Hadith hadith) async {
-    Database db = await dbHelper.database;
-    return await db.insert('hadiths', hadith.toMap());
+    return await _databaseHelper.insert(_tableName, hadith.toMap());
   }
 
-  Future<List<Hadith>> getAllHadiths() async {
-    Database db = await dbHelper.database;
-    var hadiths = await db.query('hadiths');
-
-    return hadiths.map((hadith) => Hadith.fromMap(hadith)).toList();
-  }
-
-  Future<List<Hadith>> searchHadiths(String keyword) async {
-    Database db = await dbHelper.database;
-    var hadiths = await db.query(
-      'hadiths',
-      where: 'content LIKE ? OR narrator LIKE ?',
-      whereArgs: ['%$keyword%', '%$keyword%'],
-    );
-
-    return hadiths.map((hadith) => Hadith.fromMap(hadith)).toList();
-  }
-
-  Future<List<Hadith>> getHadithsByBook(String book) async {
-    Database db = await dbHelper.database;
-    var hadiths = await db.query(
-      'hadiths',
-      where: 'book = ?',
-      whereArgs: [book],
-    );
-
-    return hadiths.map((hadith) => Hadith.fromMap(hadith)).toList();
-  }
-
-  Future<Hadith?> getHadithById(int id) async {
-    Database db = await dbHelper.database;
-    var hadiths =
-        await db.query('hadiths', where: 'id = ?', whereArgs: [id], limit: 1);
-
-    if (hadiths.isNotEmpty) {
-      return Hadith.fromMap(hadiths.first);
+  /// تحديث حديث موجود
+  Future<int> update(Hadith hadith) async {
+    if (hadith.id == null) {
+      throw ArgumentError('لا يمكن تحديث حديث بدون معرف');
     }
 
-    return null;
+    return await _databaseHelper
+        .update(_tableName, hadith.toMap(), 'id = ?', [hadith.id]);
   }
 
-  Future<int> update(Hadith hadith) async {
-    Database db = await dbHelper.database;
-    return await db.update('hadiths', hadith.toMap(),
-        where: 'id = ?', whereArgs: [hadith.id]);
-  }
-
+  /// حذف حديث بواسطة المعرف
   Future<int> delete(int id) async {
-    Database db = await dbHelper.database;
-    return await db.delete('hadiths', where: 'id = ?', whereArgs: [id]);
+    return await _databaseHelper.delete(
+      _tableName,
+      'id = ?',
+      [id],
+    );
+  }
+
+  /// الحصول على حديث بواسطة المعرف
+  Future<Hadith?> getById(int id) async {
+    final result = await _databaseHelper.query(
+      _tableName,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+
+    if (result.isEmpty) {
+      return null;
+    }
+
+    return Hadith.fromMap(result.first);
+  }
+
+  /// الحصول على جميع الأحاديث
+  Future<List<Hadith>> getAll() async {
+    final result = await _databaseHelper.query(_tableName);
+    return result.map((map) => Hadith.fromMap(map)).toList();
+  }
+
+  /// الحصول على أحاديث حسب العنوان
+  Future<List<Hadith>> getByTitle(String title) async {
+    final result = await _databaseHelper.query(
+      _tableName,
+      where: 'title LIKE ?',
+      whereArgs: ['%$title%'],
+    );
+
+    return result.map((map) => Hadith.fromMap(map)).toList();
+  }
+
+  /// الحصول على أحاديث حسب المصدر
+  Future<List<Hadith>> getBySource(String source) async {
+    final result = await _databaseHelper.query(
+      _tableName,
+      where: 'source = ?',
+      whereArgs: [source],
+    );
+
+    return result.map((map) => Hadith.fromMap(map)).toList();
+  }
+
+  /// الحصول على عدد الأحاديث
+  Future<int> getCount() async {
+    final result = await _databaseHelper
+        .rawQuery('SELECT COUNT(*) as count FROM $_tableName');
+
+    return result.first['count'] as int;
+  }
+
+  /// البحث في الأحاديث
+  Future<List<Hadith>> search(String keyword) async {
+    final result = await _databaseHelper.query(
+      _tableName,
+      where: 'title LIKE ? OR content LIKE ? OR source LIKE ?',
+      whereArgs: ['%$keyword%', '%$keyword%', '%$keyword%'],
+    );
+
+    return result.map((map) => Hadith.fromMap(map)).toList();
   }
 }

@@ -1,4 +1,4 @@
-  class ThoughtHistory {
+class ThoughtHistory {
   final int? id;
   final int precentOf0;
   final int precentOf1;
@@ -32,4 +32,6 @@
       'totalday': totalday,
     };
   }
+
+  Map<String, dynamic> toMap() => toJson();
 }

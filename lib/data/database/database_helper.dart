@@ -1,233 +1,101 @@
-import 'dart:async';
-import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'database.dart';
 
+/// مساعد قاعدة البيانات للعمليات العامة
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
   static Database? _database;
 
   DatabaseHelper._privateConstructor();
 
+  /// الحصول على مثيل قاعدة البيانات
   Future<Database> get database async {
     if (_database != null) return _database!;
-
-    _database = await _initDatabase();
+    _database = await AppDatabase.getDatabase();
     return _database!;
   }
 
-  Future<Database> _initDatabase() async {
-    String path = join(await getDatabasesPath(), 'zadulmuslihin.db');
-    return await openDatabase(
-      path,
-      version: 3,
-      onCreate: _createDatabase,
-      onUpgrade: _onUpgradeDatabase,
-    );
+  /// إدراج سجل في الجدول
+  Future<int> insert(String table, Map<String, dynamic> row) async {
+    try {
+      Database db = await database;
+      return await db.insert(table, row);
+    } catch (e) {
+      print('خطأ في إدراج البيانات: $e');
+      return -1;
+    }
   }
 
-  // دالة جديدة لإعادة تعيين قاعدة البيانات (مفيدة للتطوير والاختبار)
+  /// تحديث سجل في الجدول
+  Future<int> update(String table, Map<String, dynamic> row, String whereClause,
+      List<dynamic> whereArgs) async {
+    try {
+      Database db = await database;
+      return await db.update(table, row,
+          where: whereClause, whereArgs: whereArgs);
+    } catch (e) {
+      print('خطأ في تحديث البيانات: $e');
+      return -1;
+    }
+  }
+
+  /// حذف سجل من الجدول
+  Future<int> delete(
+      String table, String whereClause, List<dynamic> whereArgs) async {
+    try {
+      Database db = await database;
+      return await db.delete(table, where: whereClause, whereArgs: whereArgs);
+    } catch (e) {
+      print('خطأ في حذف البيانات: $e');
+      return -1;
+    }
+  }
+
+  /// استعلام عن سجلات من الجدول
+  Future<List<Map<String, dynamic>>> query(
+    String table, {
+    List<String>? columns,
+    String? where,
+    List<dynamic>? whereArgs,
+    String? orderBy,
+    int? limit,
+    int? offset,
+  }) async {
+    try {
+      Database db = await database;
+      return await db.query(
+        table,
+        columns: columns,
+        where: where,
+        whereArgs: whereArgs,
+        orderBy: orderBy,
+        limit: limit,
+        offset: offset,
+      );
+    } catch (e) {
+      print('خطأ في استعلام البيانات: $e');
+      return [];
+    }
+  }
+
+  /// تنفيذ استعلام SQL مخصص
+  Future<List<Map<String, dynamic>>> rawQuery(String sql,
+      [List<dynamic>? arguments]) async {
+    Database db = await database;
+    return await db.rawQuery(sql, arguments);
+  }
+
+  /// حذف قاعدة البيانات وإعادة إنشائها
   Future<void> resetDatabase() async {
-    String path = join(await getDatabasesPath(), 'zadulmuslihin.db');
-    // حذف قاعدة البيانات الحالية
-    await deleteDatabase(path);
-    // إعادة تهيئة قاعدة البيانات
+    Database db = await database;
+    await db.close();
     _database = null;
-    await database;
-  }
 
-  // دالة للتحقق من وجود جدول معين في قاعدة البيانات
-  Future<bool> isTableExists(String tableName) async {
-    try {
-      Database db = await database;
-      List<Map<String, dynamic>> tables = await db.rawQuery(
-          "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
-          [tableName]);
-      return tables.isNotEmpty;
-    } catch (e) {
-      print('خطأ في التحقق من وجود الجدول $tableName: $e');
-      return false;
-    }
-  }
+    // حذف قاعدة البيانات وإعادة إنشائها
+    String path = await getDatabasesPath();
+    await deleteDatabase('$path/${AppDatabase.databaseName}');
 
-  // دالة للتحقق من صحة قاعدة البيانات
-  Future<bool> validateDatabase() async {
-    try {
-      Database db = await database;
-
-      // التحقق من وجود الجداول الرئيسية
-      List<String> requiredTables = [
-        'adhan_times',
-        'locations',
-        'current_location',
-        'current_adhan',
-        'daily_tasks',
-        'islamic_information',
-        'hadiths',
-        'athkar',
-        'daily_worship'
-      ];
-
-      for (String table in requiredTables) {
-        if (!await isTableExists(table)) {
-          print('جدول غير موجود: $table');
-          return false;
-        }
-      }
-
-      return true;
-    } catch (e) {
-      print('خطأ في التحقق من قاعدة البيانات: $e');
-      return false;
-    }
-  }
-
-  Future<void> _onUpgradeDatabase(
-      Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
-      // إضافة الجداول الجديدة للنسخة 2
-      await _createLocationTables(db);
-    }
-    if (oldVersion < 3) {
-      // إضافة جدول الأذان الحالي للنسخة 3
-      await _createCurrentAdhanTable(db);
-    }
-  }
-
-  Future<void> _createDatabase(Database db, int version) async {
-    // Create Daily Tasks table
-    await db.execute('''
-      CREATE TABLE daily_tasks(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        description TEXT,
-        isCompleted INTEGER DEFAULT 0,
-        date TEXT,
-        time TEXT,
-        category TEXT,
-        priority INTEGER DEFAULT 0
-      )
-    ''');
-
-    // Create Adhan Times table (simplified structure)
-    await db.execute('''
-      CREATE TABLE adhan_times(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        date TEXT NOT NULL UNIQUE,
-        fajr_time TEXT NOT NULL,
-        sunrise_time TEXT NOT NULL,
-        dhuhr_time TEXT NOT NULL,
-        asr_time TEXT NOT NULL,
-        maghrib_time TEXT NOT NULL,
-        isha_time TEXT NOT NULL,
-        suhoor_time TEXT
-      )
-    ''');
-
-    // Create Daily Worship table
-    await db.execute('''
-      CREATE TABLE ${DatabaseConstants.TABLE_DAILY_WORSHIP}(
-        ${DatabaseConstants.COLUMN_ID} INTEGER PRIMARY KEY CHECK (${DatabaseConstants.COLUMN_ID} = 1),
-        ${DatabaseConstants.COLUMN_FAJR_PRAYER} INTEGER NOT NULL DEFAULT 0,
-        ${DatabaseConstants.COLUMN_DHUHR_PRAYER} INTEGER NOT NULL DEFAULT 0,
-        ${DatabaseConstants.COLUMN_ASR_PRAYER} INTEGER NOT NULL DEFAULT 0,
-        ${DatabaseConstants.COLUMN_MAGHRIB_PRAYER} INTEGER NOT NULL DEFAULT 0,
-        ${DatabaseConstants.COLUMN_ISHA_PRAYER} INTEGER NOT NULL DEFAULT 0,
-        ${DatabaseConstants.COLUMN_TAHAJJUD} INTEGER NOT NULL DEFAULT 0,
-        ${DatabaseConstants.COLUMN_QIYAM} INTEGER NOT NULL DEFAULT 0,
-        ${DatabaseConstants.COLUMN_QURAN} INTEGER NOT NULL DEFAULT 0,
-        ${DatabaseConstants.COLUMN_THIKR} INTEGER NOT NULL DEFAULT 0,
-        ${DatabaseConstants.COLUMN_SUHOOR} INTEGER NOT NULL DEFAULT 0
-      )
-    ''');
-
-    // Create Islamic Information table
-    await db.execute('''
-      CREATE TABLE islamic_information(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        content TEXT NOT NULL,
-        category TEXT,
-        source TEXT
-      )
-    ''');
-
-    // Create Hadith table
-    await db.execute('''
-      CREATE TABLE hadiths(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        content TEXT NOT NULL,
-        source TEXT,
-        title TEXT,
-
-      )
-    ''');
-
-    // Create Athkar table
-    await db.execute('''
-      CREATE TABLE athkar(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        content TEXT NOT NULL,
-        category TEXT,
-        count INTEGER DEFAULT 1,
-        fadl TEXT,
-        source TEXT
-      )
-    ''');
-
-
-
-    // إنشاء جداول المواقع
-    if (version >= 2) {
-      await _createLocationTables(db);
-    }
-
-    // إنشاء جدول الأذان الحالي
-    if (version >= 3) {
-      await _createCurrentAdhanTable(db);
-    }
-  }
-
-  // دالة لإنشاء جداول المواقع
-  Future<void> _createLocationTables(Database db) async {
-    // إنشاء جدول المواقع
-    await db.execute('''
-      CREATE TABLE locations(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        latitude REAL NOT NULL,
-        longitude REAL NOT NULL,
-        country TEXT,
-        city TEXT,
-        method_id INTEGER
-      )
-    ''');
-
-    // إنشاء جدول الموقع الحالي
-    await db.execute('''
-      CREATE TABLE current_location(
-        id INTEGER PRIMARY KEY CHECK (id = 1),
-        location_id INTEGER NOT NULL,
-        FOREIGN KEY (location_id) REFERENCES locations (id)
-          ON DELETE RESTRICT
-          ON UPDATE CASCADE
-      )
-    ''');
-  }
-
-  // دالة لإنشاء جدول الأذان الحالي
-  Future<void> _createCurrentAdhanTable(Database db) async {
-    await db.execute('''
-      CREATE TABLE current_adhan(
-        id INTEGER PRIMARY KEY CHECK (id = 1),
-        fajr_time TEXT NOT NULL,
-        sunrise_time TEXT NOT NULL,
-        dhuhr_time TEXT NOT NULL,
-        asr_time TEXT NOT NULL,
-        maghrib_time TEXT NOT NULL,
-        isha_time TEXT NOT NULL,
-        suhoor_time TEXT
-      )
-    ''');
+    // إعادة فتح قاعدة البيانات
+    _database = await AppDatabase.getDatabase();
   }
 }

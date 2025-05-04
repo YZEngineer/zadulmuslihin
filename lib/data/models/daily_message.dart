@@ -4,13 +4,15 @@ class DailyMessage {
   final String content;
   final int category;
   final String source;
+  final DateTime date;
 
   DailyMessage({
-    this.id = 0,
+    required this.id,
     required this.title,
     required this.content,
     required this.category,
     required this.source,
+    required this.date,
   });
 
   factory DailyMessage.fromMap(Map<String, dynamic> map) {
@@ -20,7 +22,8 @@ class DailyMessage {
       content: map['content'],
       category: map['category'],
       source: map['source'],
-    );  
+      date: map['date'],
+    );
   }
 
   Map<String, dynamic> toMap() {
@@ -30,6 +33,7 @@ class DailyMessage {
       'content': content,
       'category': category,
       'source': source,
+      'date': date,
     };
   }
 
@@ -39,6 +43,7 @@ class DailyMessage {
     String? content,
     int? category,
     String? source,
+    DateTime? date,
   }) {
     return DailyMessage(
       id: id ?? this.id,
@@ -46,12 +51,13 @@ class DailyMessage {
       content: content ?? this.content,
       category: category ?? this.category,
       source: source ?? this.source,
+      date: date ?? this.date,
     );
   }
 
   @override
   String toString() {
-    return 'DailyMessage(id: $id, title: $title, content: $content, category: $category, source: $source)';
+    return 'DailyMessage(id: $id, title: $title, content: $content, category: $category, source: $source, date: $date)';
   }
 }
 
