@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:zadulmuslihin/services/database_info_service.dart';
 import 'package:zadulmuslihin/view/database_table_view.dart';
 import 'package:zadulmuslihin/data/database/current_adhan_dao.dart';
-import 'package:zadulmuslihin/data/database/adhan_times_dao.dart';
-import 'package:zadulmuslihin/data/models/adhan_time.dart';
-import 'package:zadulmuslihin/core/tools/fix_tables.dart';
 import 'package:zadulmuslihin/services/prayer_times_service.dart';
 
 class HomePage extends StatefulWidget {
@@ -18,7 +15,6 @@ class _HomePageState extends State<HomePage> {
   List<Map<String, dynamic>> _tablesInfo = [];
   bool _showSystemTables = false;
   final PrayerTimesService _prayerTimesService = PrayerTimesService();
-  bool _isAutoRefreshActive = false;
 
   @override
   void initState() {
@@ -27,20 +23,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
-  void dispose() {
-    // إيقاف التحديث التلقائي عند إغلاق الشاشة
-    _prayerTimesService.stopAutoRefresh();
-    super.dispose();
-  }
+  void dispose() {super.dispose();}
 
   Future<void> _loadTablesInfo() async {
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() {_isLoading = true;});
 
     try {
       List<Map<String, dynamic>> tablesInfo;
-
       if (_showSystemTables) {
         // الحصول على جميع الجداول بما فيها جداول النظام
         final allTables = await _databaseInfoService.getAllSystemTables();
@@ -48,35 +37,25 @@ class _HomePageState extends State<HomePage> {
 
         for (var table in allTables) {
           int rowCount = await _databaseInfoService.getTableRowCount(table);
-          tablesInfo.add({
-            'name': table,
-            'rows': rowCount,
-            'isSystemTable':
-                table.startsWith('sqlite_') || table.startsWith('android_'),
-          });
+          tablesInfo.add({'name': table, 'rows': rowCount,
+          'isSystemTable': table.startsWith('sqlite_') || table.startsWith('android_')});
         }
       } else {
         // الحصول على الجداول الأساسية فقط
         tablesInfo = await _databaseInfoService.getTablesInfo();
       }
 
-      setState(() {
-        _tablesInfo = tablesInfo;
-        _isLoading = false;
-      });
+      setState(() {_tablesInfo = tablesInfo;_isLoading = false;});
     } catch (e) {
       print('خطأ في تحميل معلومات الجداول: $e');
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
+      setState(() {_isLoading = false;});
+    }}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('زاد المسلمين - معلومات قاعدة البيانات'),
+        title: Text('زاد المصلحين - معلومات قاعدة البيانات'),
         centerTitle: true,
         actions: [
           // إضافة زر تحديث الأذان الحالي
@@ -85,25 +64,7 @@ class _HomePageState extends State<HomePage> {
             tooltip: 'تحديث الأذان الحالي',
             onPressed: _updateCurrentAdhan,
           ),
-          // زر تعديل وقت الفجر
-          IconButton(
-            icon: Icon(Icons.alarm),
-            tooltip: 'تعديل وقت الفجر',
-            onPressed: _updateFajrTime,
-          ),
-          // إضافة زر لعرض/إخفاء جداول النظام
-          IconButton(
-            icon: Icon(_showSystemTables
-                ? Icons.filter_alt
-                : Icons.filter_alt_outlined),
-            tooltip: 'عرض جداول النظام',
-            onPressed: () {
-              setState(() {
-                _showSystemTables = !_showSystemTables;
-              });
-              _loadTablesInfo();
-            },
-          ),
+
           IconButton(
             icon: Icon(Icons.refresh),
             onPressed: _loadTablesInfo,
@@ -117,74 +78,15 @@ class _HomePageState extends State<HomePage> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: ElevatedButton.icon(
-                    icon: Icon(Icons.access_time),
-                    label: Text(
-                      'تعيين وقت الفجر ليوم 05/05/2025 إلى 04:32',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    ),
-                    onPressed: _updateFajrTime,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton.icon(
-                    icon: Icon(Icons.refresh),
-                    label: Text(
-                      'تحديث أوقات الأذان',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    ),
-                    onPressed: _updateAllAdhanTimes,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton.icon(
                     icon: Icon(Icons.cloud_download),
                     label: Text(
                       'جلب أوقات الصلاة من الإنترنت',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                       foregroundColor: Colors.white,
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    ),
-                    onPressed: _fetchPrayerTimesFromAPI,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton.icon(
-                    icon: Icon(
-                        _isAutoRefreshActive ? Icons.stop : Icons.play_arrow),
-                    label: Text(
-                      _isAutoRefreshActive
-                          ? 'إيقاف التحديث التلقائي'
-                          : 'تشغيل التحديث التلقائي',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          _isAutoRefreshActive ? Colors.orange : Colors.purple,
-                      foregroundColor: Colors.white,
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    ),
-                    onPressed: _toggleAutoRefresh,
-                  ),
+                      padding:EdgeInsets.symmetric(horizontal: 20, vertical: 12)),
+                    onPressed: _fetchPrayerTimesFromAPI),
                 ),
                 Expanded(child: _buildTablesList()),
               ],
@@ -255,7 +157,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // دالة لتحديث الأذان الحالي
+  // دالة لتحديث الأذان الحالي /// نقل الى مجلد الدوال
   Future<void> _updateCurrentAdhan() async {
     try {
       // عرض مؤشر التحميل
@@ -302,87 +204,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // دالة لتحديث وقت الفجر لتاريخ محدد
-  Future<void> _updateFajrTime() async {
-    try {
-      // عرض مؤشر التحميل
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return Center(
-            child: CircularProgressIndicator(),
-          );
-        },
-      );
-
-      // إنشاء الداو
-      final adhanTimesDao = AdhanTimesDao();
-
-      // تحديد التاريخ المستهدف: 5 مايو 2025
-      final targetDate = DateTime(2025, 5, 5);
-
-      // الحصول على بيانات الأذان الحالية
-      AdhanTimes currentTimes =
-          await adhanTimesDao.getByDateAndLocation(targetDate, 1);
-
-      // إنشاء نموذج جديد مع تحديث وقت الفجر
-      AdhanTimes updatedTimes = currentTimes.copyWith(
-        fajrTime: '04:32',
-      );
-
-      // حفظ التغييرات
-      await adhanTimesDao.insertAdhanTimes(updatedTimes);
-
-      // إغلاق مؤشر التحميل
-      Navigator.pop(context);
-
-      // عرض رسالة نجاح
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('تم تعيين وقت الفجر ليوم 05/05/2025 إلى 04:32 بنجاح'),
-          backgroundColor: Colors.blue,
-          duration: Duration(seconds: 3),
-        ),
-      );
-
-      // إعادة تحميل معلومات الجداول
-      _loadTablesInfo();
-    } catch (e) {
-      // إغلاق مؤشر التحميل في حالة الخطأ
-      Navigator.pop(context);
-
-      // عرض رسالة الخطأ
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('حدث خطأ أثناء تحديث وقت الفجر: $e'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
-        ),
-      );
-    }
-  }
-
-  // دالة لحذف وإعادة تعبئة جدول أوقات الأذان
-  Future<void> _updateAllAdhanTimes() async {
-    try {
-      _prayerTimesService.refreshAllPrayerTimes(forceUpdate: true);
-
-    } catch (e) {
-      // إغلاق مؤشر التحميل في حالة الخطأ
-      Navigator.pop(context);
-
-      // عرض رسالة الخطأ
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('حدث خطأ أثناء تحديث أوقات الأذان: $e'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
-        ),
-      );
-    }
-  }
-
+  ///نقل الى مجلد السيرفيس
   // دالة لجلب أوقات الصلاة من API
   Future<void> _fetchPrayerTimesFromAPI() async {
     try {
@@ -466,30 +288,4 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // دالة للتبديل بين تفعيل وإيقاف التحديث التلقائي
-  void _toggleAutoRefresh() {
-    setState(() {
-      _isAutoRefreshActive = !_isAutoRefreshActive;
-    });
-
-    if (_isAutoRefreshActive) {
-      _prayerTimesService.startAutoRefresh();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('تم تفعيل التحديث التلقائي كل دقيقة'),
-          backgroundColor: Colors.purple,
-          duration: Duration(seconds: 2),
-        ),
-      );
-    } else {
-      _prayerTimesService.stopAutoRefresh();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('تم إيقاف التحديث التلقائي'),
-          backgroundColor: Colors.orange,
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
-  }
 }

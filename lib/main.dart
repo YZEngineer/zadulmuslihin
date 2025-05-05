@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'core/services/app_initializer.dart';
 import 'core/tools/fix_tables.dart';
 import 'view/home.dart';
 
@@ -24,12 +23,6 @@ void main() async {
     print('خطأ أثناء إصلاح الجداول: $e');
   }
 
-  // تهيئة التطبيق وقاعدة البيانات
-  final appInitializer = AppInitializer();
-  await appInitializer.initialize();
-
-  // طباعة معلومات قاعدة البيانات في وضع التطوير
-  await appInitializer.logDatabaseInfo();
 
   runApp(const MyApp());
 }

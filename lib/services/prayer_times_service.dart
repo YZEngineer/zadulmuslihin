@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:zadulmuslihin/data/database/location_dao.dart';
 import '../data/database/adhan_times_dao.dart';
 import '../data/models/adhan_time.dart';
 import '../data/database/current_location_dao.dart';
@@ -13,6 +14,7 @@ class PrayerTimesService {
   static final PrayerTimesService _instance = PrayerTimesService._internal();
   final AdhanTimesDao _adhanTimesDao = AdhanTimesDao();
   final CurrentLocationDao _currentLocationDao = CurrentLocationDao();
+  final LocationDao _locationDao = LocationDao();
   Timer? _refreshTimer;
   bool _isRefreshing = false;
 
@@ -24,25 +26,13 @@ class PrayerTimesService {
 
   /// بدء التحديث التلقائي لأوقات الصلاة كل دقيقة
   void startAutoRefresh() {
-    // إلغاء التايمر الموجود إذا كان نشطًا
-    stopAutoRefresh();
-
-    // إنشاء تايمر جديد لتحديث أوقات الصلاة كل دقيقة
-    _refreshTimer = Timer.periodic(Duration(minutes: 1), (_) {
-      refreshAllPrayerTimes();
-    });
-
-    print('تم بدء التحديث التلقائي لأوقات الصلاة كل دقيقة');
+    // إنشاء تايمر جديد لتحديث أوقات الصلاة كل ساعة
+    _refreshTimer = Timer.periodic(
+      Duration(hours: 1), (_) {refreshAllPrayerTimes();});
+    print('تم بدء التحديث التلقائي لأوقات الصلاة كل ساعة');
   }
 
-  /// إيقاف التحديث التلقائي لأوقات الصلاة
-  void stopAutoRefresh() {
-    if (_refreshTimer != null) {
-      _refreshTimer!.cancel();
-      _refreshTimer = null;
-      print('تم إيقاف التحديث التلقائي لأوقات الصلاة');
-    }
-  }
+
 
   /// الحصول على أوقات الصلاة من الخدمة الخارجية
   Future<bool> fetchAndStorePrayerTimes({
@@ -68,10 +58,10 @@ class PrayerTimesService {
       }
 
       // الحصول على بيانات الموقع
-      final locationData =await _getCurrentLocationCoordinates(targetLocationId);
-      final latitude = locationData['latitude'];
-      final longitude = locationData['longitude'];
-      final method = locationData['method_id'];
+      final locationData =await _locationDao.getLocationById(targetLocationId);
+      final latitude = locationData?.latitude;
+      final longitude = locationData?.longitude;
+      final method = locationData?.methodId;
 
       // تنسيق التاريخ للاستخدام في طلب API
       final formattedDate = DateFormat('dd-MM-yyyy').format(targetDate);
@@ -172,14 +162,11 @@ class PrayerTimesService {
   }) async {
     try {
       // تاريخ 2025/05/05
-      final targetDate = DateTime(2025, 5, 5);
+      final targetDate = DateTime.now();
 
       // الحصول على أوقات الصلاة
       return await fetchAndStorePrayerTimes(
-        date: targetDate,
-        locationId: locationId,
-        forceUpdate: forceUpdate,
-      );
+        date: targetDate,locationId: locationId,forceUpdate: forceUpdate);
     } catch (e) {
       print('خطأ في الحصول على أوقات الصلاة للتاريخ المحدد: $e');
       return false;
@@ -247,37 +234,9 @@ class PrayerTimesService {
     }
   }
 
-  /// الحصول على إحداثيات الموقع الحالي
-  Future<Map<String, dynamic>> _getCurrentLocationCoordinates(
-      int locationId) async {
-    try {
-      final db = await DatabaseHelper.instance.database;
-      final locationData = await db.query(
-        'locations',
-        where: 'id = ?',
-        whereArgs: [locationId],
-      );
-
-      if (locationData.isEmpty) {
-        throw Exception('لم يتم العثور على موقع بمعرف $locationId');
-      }
-
-      return {
-        'latitude': locationData.first['latitude'],
-        'longitude': locationData.first['longitude'],
-        'method_id': locationData.first['method_id'] ??
-            4, // 4 هو المعرف الافتراضي لطريقة أم القرى
-      };
-    } catch (e) {
-      print('خطأ في الحصول على إحداثيات الموقع: $e');
-      // قيم افتراضية لمكة المكرمة
-      return {
-        'x': -1,
-      };
-    }
-  }
 
   /// تنسيق الوقت من صيغة 24 ساعة إلى صيغة 12 ساعة
+  /// وضع لادوال في مجلد الدوال
   String _formatTime(String time24) {
     try {
       // التحقق من تنسيق الوقت

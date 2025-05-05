@@ -32,7 +32,7 @@ class LocationDao {
   }
 
   /// الحصول على موقع بواسطة المعرف
-  Future<Location?> getById(int id) async {
+  Future<Location?> getLocationById(int id) async {
     final result = await _databaseHelper.query(
       _tableName,
       where: 'id = ?',
