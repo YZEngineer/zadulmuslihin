@@ -1,12 +1,13 @@
 /// نموذج يمثل موقعًا جغرافيًا يمكن تخزينه
 class Location {
-  final int? id; // معرف الموقع في قاعدة البيانات
-  final String name; // اسم الموقع (مثل "القاهرة، مصر")
-  final double latitude; // خط العرض
-  final double longitude; // خط الطول
-  final String? country; // اسم الدولة (اختياري)
-  final String? city; // اسم المدينة (اختياري)
-  final int? methodId; // معرف طريقة حساب أوقات الصلاة (1-15)
+  final int? id;
+  final double latitude;
+  final double longitude;
+  final String? country;
+  final String? city;
+  final String? timezone;
+  final String? Madhab;
+  final int? methodId;
 
   // حدود خطوط العرض والطول
   static const double minLatitude = -90.0;
@@ -34,12 +35,13 @@ class Location {
 
   Location({
     this.id,
-    required this.name,
     required this.latitude,
     required this.longitude,
     this.country,
     this.city,
+    this.timezone,
     this.methodId,
+    this.Madhab,
   }) {
     // التحقق من صحة الإحداثيات
     if (latitude < minLatitude || latitude > maxLatitude) {
@@ -56,21 +58,19 @@ class Location {
       throw ArgumentError('طريقة الحساب غير مدعومة: $methodId');
     }
 
-    // التحقق من الاسم
-    if (name.isEmpty) {
-      throw ArgumentError('يجب توفير اسم للموقع');
-    }
+
   }
 
   /// إنشاء نموذج من خريطة بيانات
   factory Location.fromMap(Map<String, dynamic> map) {
     return Location(
       id: map['id'],
-      name: map['name'] ?? '',
       latitude: _parseDouble(map['latitude']),
       longitude: _parseDouble(map['longitude']),
       country: map['country'],
       city: map['city'],
+      timezone: map['timezone'],
+      Madhab: map['Madhab'],
       methodId: map['method_id'],
     );
   }
@@ -96,11 +96,12 @@ class Location {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'name': name,
       'latitude': latitude,
       'longitude': longitude,
       'country': country,
       'city': city,
+      'timezone': timezone,
+      'Madhab': Madhab,
       'method_id': methodId,
     };
   }
@@ -108,26 +109,28 @@ class Location {
   /// إنشاء نسخة معدلة من هذا النموذج
   Location copyWith({
     int? id,
-    String? name,
     double? latitude,
     double? longitude,
     String? country,
     String? city,
+    String? timezone,
+    String? Madhab,
     int? methodId,
   }) {
     return Location(
       id: id ?? this.id,
-      name: name ?? this.name,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       country: country ?? this.country,
       city: city ?? this.city,
+      timezone: timezone ?? this.timezone,
+      Madhab: Madhab ?? this.Madhab,
       methodId: methodId ?? this.methodId,
     );
   }
 
   @override
   String toString() {
-    return 'Location(id: $id, name: $name, latitude: $latitude, longitude: $longitude, country: $country, city: $city, methodId: $methodId)';
+    return 'Location(id: $id, latitude: $latitude, longitude: $longitude, country: $country, city: $city, timezone: $timezone, Madhab: $Madhab, methodId: $methodId)';
   }
 }

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:sqflite/sqflite.dart';
 import 'package:intl/intl.dart';
-
+import '../models/daily_task.dart';
 import 'database_helper.dart';
 import 'database.dart';
 import '../models/hadith.dart';
@@ -67,6 +67,35 @@ class DatabaseManager {
     if (thoughts.isEmpty) {
       await _populateThoughts();
     }
+    // تعبئة المهام اليومية
+    final tasks = await _databaseHelper.query(AppDatabase.tableDailyTask);
+    if (tasks.isEmpty) {
+      await _populateDailyTasks();
+    }
+
+  }
+
+  /// تعبئة المهام اليومية
+  /// رياضة, عادات ,اهداف
+  /// 5 رياضة و3 اهداف و2 عادة اضافة 
+  Future<void> _populateDailyTasks() async {
+    final tasks = [
+      DailyTask(title: "ضغط Push-ups", isCompleted: false, workOn: false, category: 1),
+      DailyTask(title: "جري" , isCompleted: false, workOn: false, category: 1),
+      DailyTask(title: "Squats القرفصاء ", isCompleted: false, workOn: false, category: 1),
+      DailyTask(title: "Plan بلانك", isCompleted: false, workOn: false, category: 1),
+      DailyTask(title: "Dips رفع", isCompleted: false, workOn: false, category: 1),
+      DailyTask(title: "Crunches تمرين المعدة", isCompleted: false, workOn: false, category: 1),
+      DailyTask(title: "تعلم السيرة", isCompleted: false, workOn: false, category: 2),
+      DailyTask(title: " x قراءة كتاب", isCompleted: false, workOn: false, category: 2),
+      DailyTask(title: "استماع درس عقيدة", isCompleted: false, workOn: false, category: 2),
+      DailyTask(title: "محاسبة النفس", isCompleted: false, workOn: false, category: 3),
+      DailyTask(title: "تزكية", isCompleted: false, workOn: false, category: 3),
+    ];
+
+    for (var task in tasks) {
+      await _databaseHelper.insert(AppDatabase.tableDailyTask, task.toMap());
+    }
   }
 
   /// تعبئة الأحاديث النبوية
@@ -94,14 +123,8 @@ class DatabaseManager {
   /// تعبئة الأذكار
   Future<void> _populateAthkar() async {
     final athkars = [
-      Athkar(
-          content:
-              "أصبحنا وأصبح الملك لله والحمد لله لا إله إلا الله وحده لا شريك له",
-          title: "أذكار الصباح"),
-      Athkar(
-          content:
-              "أمسينا وأمسى الملك لله والحمد لله لا إله إلا الله وحده لا شريك له",
-          title: "أذكار المساء"),
+      Athkar(content:"أصبحنا وأصبح الملك لله والحمد لله لا إله إلا الله وحده لا شريك له",title: "أذكار الصباح"),
+      Athkar(content:"أمسينا وأمسى الملك لله والحمد لله لا إله إلا الله وحده لا شريك له",title: "أذكار المساء"),
       Athkar(content: "اللهم افتح لي أبواب رحمتك", title: "دعاء دخول المسجد"),
     ];
 
@@ -114,17 +137,17 @@ class DatabaseManager {
   Future<void> _populateQuranVerses() async {
     final verses = [
       QuranVerses(
-          text: "بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ",
-          source: "الفاتحة: 1",
-          theme: "البسملة"),
+          text: "واتل عليهم نبا ابراهيم اذ قال لابيه وقومه ... ",
+          source: "الشعراء: 75",
+          theme: "دعاء ابراهيم عليه السلام"),
       QuranVerses(
-          text: "لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا",
-          source: "البقرة: 286",
-          theme: "التيسير"),
+          text: "لا اله الا انت سبحانك اني كنت من الظالمين",
+          source: "...",
+          theme: "...."),
       QuranVerses(
-          text: "وَاعْتَصِمُوا بِحَبْلِ اللَّهِ جَمِيعًا وَلَا تَفَرَّقُوا",
-          source: "آل عمران: 103",
-          theme: "الوحدة"),
+          text: "رب اشرح لي صدري , ويسر لي أمري  , واحلل عقدة من لساني ",
+          source: "طه: 25-27",
+          theme: "دعاء موسى عليه السلام"),
     ];
 
     for (var verse in verses) {
@@ -164,14 +187,12 @@ class DatabaseManager {
 
     final messages = [
       DailyMessage(
-
           title: "الإخلاص في العمل",
           content: "اجعل نيتك خالصة لله في كل أعمالك، فإنما الأعمال بالنيات",
           category: 1,
           source: "من أقوال السلف",
           date: currentDate),
       DailyMessage(
-
           title: "صلة الرحم",
           content: "حافظ على صلة الرحم فإنها تزيد في العمر وتوسع في الرزق",
           category: 2,

@@ -6,7 +6,7 @@ class DailyWorship {
   final bool asrPrayer; // صلاة العصر
   final bool maghribPrayer; // صلاة المغرب
   final bool ishaPrayer; // صلاة العشاء
-  final bool tahajjud; // صلاة التهجد
+  final bool witr; // صلاة الوتر
   final bool qiyam; // قيام الليل
   final bool quran; // قراءة القرآن
   final bool thikr; // الأذكار
@@ -18,7 +18,7 @@ class DailyWorship {
     required this.asrPrayer,
     required this.maghribPrayer,
     required this.ishaPrayer,
-    required this.tahajjud,
+    required this.witr,
     required this.qiyam,
     required this.quran,
     required this.thikr,
@@ -28,14 +28,15 @@ class DailyWorship {
   factory DailyWorship.fromMap(Map<String, dynamic> map) {
     return DailyWorship(
       id: map['id'] ?? 1,
-      fajrPrayer: map['fajrPrayer'] == 1 || map['fajrPrayer'] == true,
-      dhuhrPrayer: map['dhuhrPrayer'] == 1 || map['dhuhrPrayer'] == true,
-      asrPrayer: map['asrPrayer'] == 1 || map['asrPrayer'] == true,
-      maghribPrayer: map['maghribPrayer'] == 1 || map['maghribPrayer'] == true,
-      ishaPrayer: map['ishaPrayer'] == 1 || map['ishaPrayer'] == true,
-      tahajjud: map['tahajjud'] == 1 || map['tahajjud'] == true,
+      fajrPrayer: map['fajr_prayer'] == 1 || map['fajr_prayer'] == true,
+      dhuhrPrayer: map['dhuhr_prayer'] == 1 || map['dhuhr_prayer'] == true,
+      asrPrayer: map['asr_prayer'] == 1 || map['asr_prayer'] == true,
+      maghribPrayer:
+          map['maghrib_prayer'] == 1 || map['maghrib_prayer'] == true,
+      ishaPrayer: map['isha_prayer'] == 1 || map['isha_prayer'] == true,
+      witr: map['witr'] == 1 || map['witr'] == true,
       qiyam: map['qiyam'] == 1 || map['qiyam'] == true,
-      quran: map['quran'] == 1 || map['quran'] == true,
+      quran: map['quran_reading'] == 1 || map['quran_reading'] == true,
       thikr: map['thikr'] == 1 || map['thikr'] == true,
     );
   }
@@ -44,14 +45,14 @@ class DailyWorship {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'fajrPrayer': fajrPrayer ? 1 : 0,
-      'dhuhrPrayer': dhuhrPrayer ? 1 : 0,
-      'asrPrayer': asrPrayer ? 1 : 0,
-      'maghribPrayer': maghribPrayer ? 1 : 0,
-      'ishaPrayer': ishaPrayer ? 1 : 0,
-      'tahajjud': tahajjud ? 1 : 0,
+      'fajr_prayer': fajrPrayer ? 1 : 0,
+      'dhuhr_prayer': dhuhrPrayer ? 1 : 0,
+      'asr_prayer': asrPrayer ? 1 : 0,
+      'maghrib_prayer': maghribPrayer ? 1 : 0,
+      'isha_prayer': ishaPrayer ? 1 : 0,
+      'witr': witr ? 1 : 0,
       'qiyam': qiyam ? 1 : 0,
-      'quran': quran ? 1 : 0,
+      'quran_reading': quran ? 1 : 0,
       'thikr': thikr ? 1 : 0,
     };
   }
@@ -64,7 +65,7 @@ class DailyWorship {
     bool? asrPrayer,
     bool? maghribPrayer,
     bool? ishaPrayer,
-    bool? tahajjud,
+    bool? witr,
     bool? qiyam,
     bool? quran,
     bool? thikr,
@@ -76,7 +77,7 @@ class DailyWorship {
       asrPrayer: asrPrayer ?? this.asrPrayer,
       maghribPrayer: maghribPrayer ?? this.maghribPrayer,
       ishaPrayer: ishaPrayer ?? this.ishaPrayer,
-      tahajjud: tahajjud ?? this.tahajjud,
+      witr: witr ?? this.witr,
       qiyam: qiyam ?? this.qiyam,
       quran: quran ?? this.quran,
       thikr: thikr ?? this.thikr,
@@ -87,6 +88,6 @@ class DailyWorship {
   String toString() {
     return 'DailyWorship(id: $id, fajrPrayer: $fajrPrayer, dhuhrPrayer: $dhuhrPrayer, '
         'asrPrayer: $asrPrayer, maghribPrayer: $maghribPrayer, ishaPrayer: $ishaPrayer, '
-        'tahajjud: $tahajjud, qiyam: $qiyam, quran: $quran, thikr: $thikr)';
+        'witr: $witr, qiyam: $qiyam, quran: $quran, thikr: $thikr)';
   }
 }

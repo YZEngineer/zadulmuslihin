@@ -34,18 +34,14 @@ class CurrentAdhanDao {
   /// الحصول على الصلاة الحالية إن وجدت
   Future<CurrentAdhan?> getCurrent() async {
     final records = await getAll();
-    if (records.isEmpty) {
-      return null;
-    }
+    if (records.isEmpty) {return null;}
     return records.first;
   }
 
   /// تحديث معلومات الصلاة الحالية
   Future<int> updateCurrentAdhan(CurrentAdhan updatedAdhan) async {
     final current = await getCurrent();
-    if (current == null) {
-      return 0;
-    }
+    if (current == null) {return 0;}
 
     return await _databaseHelper
         .update(_tableName, updatedAdhan.toMap(), 'id = ?', [current.id]);

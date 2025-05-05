@@ -4,7 +4,7 @@ class MyLibrary {
   final String title;
   final String content;
   final String? source;
-  final int tabName;
+  final String tabName;
 
   MyLibrary({
     required this.id,
@@ -20,7 +20,7 @@ class MyLibrary {
       title: json['title'],
       content: json['content'],
       source: json['source'],
-      tabName: json['tab_name'],
+      tabName: json['tabName'],
     );
   }
 
@@ -30,7 +30,7 @@ class MyLibrary {
       'title': title,
       'content': content,
       'source': source,
-      'tab_name': tabName,
+      'tabName': tabName,
     };
   }
 

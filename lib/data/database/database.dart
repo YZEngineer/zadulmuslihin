@@ -54,10 +54,7 @@ class AppDatabase {
       CREATE TABLE $tableAthkar (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
-        content TEXT NOT NULL,
-        category TEXT NOT NULL,
-        count INTEGER NOT NULL,
-        reference TEXT
+        content TEXT NOT NULL
       )
     ''');
 
@@ -69,8 +66,7 @@ class AppDatabase {
         prayer_time TEXT NOT NULL,
         next_prayer_name TEXT NOT NULL,
         next_prayer_time TEXT NOT NULL,
-        current_date TEXT NOT NULL,
-        notification_enabled INTEGER NOT NULL
+        current_date TEXT NOT NULL
       )
     ''');
 
@@ -82,7 +78,9 @@ class AppDatabase {
         longitude REAL NOT NULL,
         city TEXT,
         country TEXT,
-        last_updated TEXT NOT NULL
+        timezone TEXT,
+        calculation_method TEXT NOT NULL,
+        Madhab TEXT NOT NULL
       )
     ''');
 
@@ -91,11 +89,9 @@ class AppDatabase {
       CREATE TABLE $tableDailyTask (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
-        description TEXT,
         is_completed INTEGER NOT NULL,
-        date TEXT NOT NULL,
-        importance INTEGER NOT NULL,
-        category TEXT NOT NULL
+        work_on INTEGER NOT NULL,
+        category INTEGER NOT NULL
       )
     ''');
 
@@ -109,8 +105,9 @@ class AppDatabase {
         asr_prayer INTEGER NOT NULL,
         maghrib_prayer INTEGER NOT NULL,
         isha_prayer INTEGER NOT NULL,
-        morning_athkar INTEGER NOT NULL,
-        evening_athkar INTEGER NOT NULL,
+        thikr INTEGER NOT NULL,
+        qiyam INTEGER NOT NULL,
+        witr INTEGER NOT NULL,
         quran_reading INTEGER NOT NULL
       )
     ''');
@@ -119,9 +116,9 @@ class AppDatabase {
     await db.execute('''
       CREATE TABLE $tableHadith (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        conte nt TEXT NOT NULL,
+        content TEXT NOT NULL,
         title TEXT NOT NULL,
-        source TEXT NOT NULL,
+        source TEXT NOT NULL
       )
     ''');
 
@@ -131,9 +128,7 @@ class AppDatabase {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
         content TEXT NOT NULL,
-        category TEXT NOT NULL,
-        source TEXT,
-        date_added TEXT NOT NULL
+        category TEXT NOT NULL
       )
     ''');
 
@@ -147,7 +142,6 @@ class AppDatabase {
         city TEXT,
         country TEXT,
         timezone TEXT,
-        is_current INTEGER NOT NULL,
         calculation_method TEXT NOT NULL,
         adjustment_method TEXT NOT NULL
       )
@@ -157,13 +151,14 @@ class AppDatabase {
     await db.execute('''
       CREATE TABLE $tableWorshipHistory (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        date TEXT NOT NULL,
-        type TEXT NOT NULL,
-        details TEXT NOT NULL
+        precentOf0 INTEGER NOT NULL,
+        precentOf1 INTEGER NOT NULL,
+        precentOf2 INTEGER NOT NULL,
+        totalday INTEGER NOT NULL
       )
     ''');
 
-    // جدول سجل الأفكار
+    // جدول سجل الخواطر
     await db.execute('''
       CREATE TABLE $tableThoughtHistory (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -174,7 +169,7 @@ class AppDatabase {
       )
     ''');
 
-    // جدول الأفكار
+    // جدول الخواطر
     await db.execute('''
       CREATE TABLE $tableThought (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -191,9 +186,9 @@ class AppDatabase {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         text TEXT NOT NULL,
         source TEXT NOT NULL,
-        theme TEXT,
+        theme TEXT
       )
-    ''');
+      ''');
 
     // جدول الرسائل اليومية
     await db.execute('''
@@ -213,9 +208,8 @@ class AppDatabase {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
         content TEXT NOT NULL,
-        type TEXT NOT NULL,
-        date_added TEXT NOT NULL,
-        favorite INTEGER NOT NULL
+        source TEXT,
+        tabName TEXT NOT NULL
       )
     ''');
   }

@@ -1,12 +1,12 @@
 class DailyTask {
-  final int id;
+  final int? id;
   final String title; //عنوان المهمة
   final bool isCompleted; //مكتمل
   final bool workOn; //اعمل عليه
   final int category; // رياضة, عادات ,اهداف
 
   DailyTask({
-    required this.id,
+    this.id,
     required this.title,
     this.isCompleted = false,
     required this.category,
