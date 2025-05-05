@@ -1,19 +1,14 @@
 import 'package:flutter/material.dart';
-import 'core/tools/fix_tables.dart';
+
 import 'view/home.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // إصلاح جداول قاعدة البيانات الأساسية
-  final tableFixer = TableFixer();
   try {
     print('بدء إصلاح جداول قاعدة البيانات...');
-
-
-
-    // ثم إصلاح جدول الأذان الحالي
-    await tableFixer.fixCurrentAdhanTable();
+  
 
     // تخطي إصلاح جدول أوقات الأذان هنا لتجنب حذف البيانات
     // سيتم التعامل معه يدوياً من واجهة المستخدم

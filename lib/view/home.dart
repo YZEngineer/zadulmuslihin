@@ -91,12 +91,6 @@ class _HomePageState extends State<HomePage> {
                 Expanded(child: _buildTablesList()),
               ],
             ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _updateCurrentAdhan,
-        label: Text('تحديث الأذان الحالي'),
-        icon: Icon(Icons.update),
-        backgroundColor: Colors.green,
-      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
