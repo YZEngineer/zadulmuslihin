@@ -6,7 +6,7 @@ class Location {
   final String? country;
   final String? city;
   final String? timezone;
-  final String? Madhab;
+  final String? madhab;
   final int? methodId;
 
   // حدود خطوط العرض والطول
@@ -41,7 +41,7 @@ class Location {
     this.city,
     this.timezone,
     this.methodId,
-    this.Madhab,
+    this.madhab,
   }) {
     // التحقق من صحة الإحداثيات
     if (latitude < minLatitude || latitude > maxLatitude) {
@@ -70,7 +70,7 @@ class Location {
       country: map['country'],
       city: map['city'],
       timezone: map['timezone'],
-      Madhab: map['Madhab'],
+      madhab: map['madhab'],
       methodId: map['method_id'],
     );
   }
@@ -101,7 +101,7 @@ class Location {
       'country': country,
       'city': city,
       'timezone': timezone,
-      'Madhab': Madhab,
+      'madhab': madhab,
       'method_id': methodId,
     };
   }
@@ -114,7 +114,7 @@ class Location {
     String? country,
     String? city,
     String? timezone,
-    String? Madhab,
+    String? madhab,
     int? methodId,
   }) {
     return Location(
@@ -124,13 +124,13 @@ class Location {
       country: country ?? this.country,
       city: city ?? this.city,
       timezone: timezone ?? this.timezone,
-      Madhab: Madhab ?? this.Madhab,
+      madhab: madhab ?? this.madhab,
       methodId: methodId ?? this.methodId,
     );
   }
 
   @override
   String toString() {
-    return 'Location(id: $id, latitude: $latitude, longitude: $longitude, country: $country, city: $city, timezone: $timezone, Madhab: $Madhab, methodId: $methodId)';
+    return 'Location(id: $id, latitude: $latitude, longitude: $longitude, country: $country, city: $city, timezone: $timezone, madhab: $madhab, methodId: $methodId)';
   }
 }

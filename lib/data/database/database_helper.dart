@@ -26,6 +26,21 @@ class DatabaseHelper {
     }
   }
 
+  /// إدراج أو استبدال سجل في الجدول (للتعامل مع قيود UNIQUE)
+  Future<int> insertOrReplace(String table, Map<String, dynamic> row) async {
+    try {
+      Database db = await database;
+      return await db.insert(
+        table,
+        row,
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    } catch (e) {
+      print('خطأ في إدراج أو استبدال البيانات: $e');
+      return -1;
+    }
+  }
+
   /// تحديث سجل في الجدول
   Future<int> update(String table, Map<String, dynamic> row, String whereClause,
       List<dynamic> whereArgs) async {
@@ -83,6 +98,43 @@ class DatabaseHelper {
       [List<dynamic>? arguments]) async {
     Database db = await database;
     return await db.rawQuery(sql, arguments);
+  }
+
+  /// الحصول على قائمة جميع الجداول في قاعدة البيانات
+  Future<List<String>> getAllTables() async {
+    try {
+      Database db = await database;
+      List<Map<String, dynamic>> tables = await db.rawQuery(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'android_%'");
+
+      return tables.map((table) => table['name'] as String).toList();
+    } catch (e) {
+      print('خطأ في الحصول على قائمة الجداول: $e');
+      return [];
+    }
+  }
+
+  /// الحصول على هيكل الجدول (أسماء الأعمدة وأنواعها)
+  Future<List<Map<String, dynamic>>> getTableStructure(String tableName) async {
+    try {
+      Database db = await database;
+      return await db.rawQuery("PRAGMA table_info($tableName)");
+    } catch (e) {
+      print('خطأ في الحصول على هيكل الجدول: $e');
+      return [];
+    }
+  }
+
+  /// الحصول على بيانات جدول معين
+  Future<List<Map<String, dynamic>>> getTableData(String tableName,
+      {int limit = 50}) async {
+    try {
+      Database db = await database;
+      return await db.query(tableName, limit: limit);
+    } catch (e) {
+      print('خطأ في الحصول على بيانات الجدول: $e');
+      return [];
+    }
   }
 
   /// حذف قاعدة البيانات وإعادة إنشائها

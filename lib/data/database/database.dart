@@ -5,7 +5,7 @@ import 'package:path/path.dart';
 class AppDatabase {
   static const String databaseName = 'zadulmuslihin.db';
   static const int databaseVersion = 1;
-  
+
   // أسماء الجداول
   static const String tableAdhanTimes = 'adhan_times';
   static const String tableAthkar = 'athkar';
@@ -22,6 +22,7 @@ class AppDatabase {
   static const String tableQuranVerses = 'quran_verses';
   static const String tableDailyMessage = 'daily_message';
   static const String tableMyLibrary = 'my_library';
+  static const String tableSettings = 'settings';
 
   /// إنشاء قاعدة البيانات
   static Future<Database> getDatabase() async {
@@ -35,19 +36,145 @@ class AppDatabase {
 
   /// إنشاء جداول قاعدة البيانات
   static Future<void> _onCreate(Database db, int version) async {
-    // جدول أوقات الأذان
+    // ١. أولاً: إنشاء جدول المواقع
+    await db.execute('''
+      CREATE TABLE $tableLocation (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        latitude REAL NOT NULL,
+        longitude REAL NOT NULL,
+        city TEXT,
+        country TEXT,
+        timezone TEXT,
+        madhab TEXT,
+        method_id INTEGER NOT NULL)
+    ''');
+
+    // إدخال المواقع الأساسية
+    final List<Map<String, dynamic>> defaultLocations = [
+      {
+        'latitude': 24.7136,
+        'longitude': 46.6753,
+        'city': "الرياض",
+        'country': "المملكة العربية السعودية",
+        'timezone': "Asia/Riyadh",
+        'method_id': 1,
+        'madhab': "Hanafi"
+      },
+      {
+        'latitude': 21.4225,
+        'longitude': 39.8262,
+        'city': "مكة المكرمة",
+        'country': "المملكة العربية السعودية",
+        'timezone': "Asia/Riyadh",
+        'method_id': 1,
+        'madhab': "Hanafi"
+      },
+      {
+        'latitude': 31.9552,
+        'longitude': 35.9453,
+        'city': "القدس",
+        'country': "فلسطين",
+        'timezone': "Asia/Jerusalem",
+        'method_id': 1,
+        'madhab': "Hanafi"
+      }
+    ];
+
+    // إضافة المواقع الافتراضية
+    for (var location in defaultLocations) {
+      await db.insert(tableLocation, location);
+    }
+
+    // ٢. ثانياً: إنشاء جدول الموقع الحالي
+    await db.execute('''
+      CREATE TABLE $tableCurrentLocation (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        location_id INTEGER NOT NULL DEFAULT 1,
+        FOREIGN KEY (location_id) REFERENCES $tableLocation (id)
+      )
+    ''');
+
+    // إنشاء سجل للموقع الحالي بقيمة افتراضية 1
+    await db.insert(tableCurrentLocation, {'location_id': 1});
+
+    // ٣. ثالثاً: إنشاء جدول أوقات الأذان
     await db.execute('''
       CREATE TABLE $tableAdhanTimes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        location_id INTEGER NOT NULL,
         date TEXT NOT NULL,
-        fajr_time TEXT NOT NULL,
-        sunrise_time TEXT NOT NULL,
-        dhuhr_time TEXT NOT NULL,
-        asr_time TEXT NOT NULL,
-        maghrib_time TEXT NOT NULL,
-        isha_time TEXT NOT NULL
+        fajr_time TEXT NOT NULL DEFAULT '00:00',
+        sunrise_time TEXT NOT NULL DEFAULT '00:00',
+        dhuhr_time TEXT NOT NULL DEFAULT '00:00',
+        asr_time TEXT NOT NULL DEFAULT '00:00',
+        maghrib_time TEXT NOT NULL DEFAULT '00:00',
+        isha_time TEXT NOT NULL DEFAULT '00:00',
+        UNIQUE(location_id, date),
+        FOREIGN KEY (location_id) REFERENCES $tableLocation (id)
       )
     ''');
+
+    // ٤. رابعاً: إنشاء جدول الأذان الحالي
+    await db.execute('''
+      CREATE TABLE $tableCurrentAdhan (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        location_id INTEGER NOT NULL,
+        date TEXT NOT NULL,
+        fajr_time TEXT NOT NULL DEFAULT '00:00',
+        sunrise_time TEXT NOT NULL DEFAULT '00:00',
+        dhuhr_time TEXT NOT NULL DEFAULT '00:00',
+        asr_time TEXT NOT NULL DEFAULT '00:00',
+        maghrib_time TEXT NOT NULL DEFAULT '00:00',
+        isha_time TEXT NOT NULL DEFAULT '00:00',
+        FOREIGN KEY (location_id) REFERENCES $tableLocation (id)
+      )
+    ''');
+
+    // ٥. خامساً: إنشاء جدول الإعدادات
+    await db.execute('''
+      CREATE TABLE $tableSettings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        key TEXT NOT NULL,
+        value TEXT NOT NULL
+      )
+    ''');
+
+    // إضافة إعدادات افتراضية
+    List<Map<String, dynamic>> defaultSettings = [
+      {'key': 'notification_enabled', 'value': 'true'},
+      {'key': 'prayer_alert', 'value': 'true'},
+      {'key': 'dark_mode', 'value': 'false'}
+    ];
+
+    for (var setting in defaultSettings) {
+      await db.insert(tableSettings, setting);
+    }
+
+    // التأكد من وجود سجل لكل موقع في جدول أوقات الأذان الحالية
+    final now = DateTime.now().toIso8601String().split('T')[0];
+    final List<Map<String, dynamic>> locations = await db.query(tableLocation);
+
+    for (var location in locations) {
+      int locationId = location['id'];
+
+      // إضافة سجل في جدول أوقات الأذان لكل موقع للتاريخ الحالي
+      // استخدام ConflictAlgorithm.replace لتجنب مشكلة UNIQUE constraint
+      await db.insert(
+          tableAdhanTimes,
+          {
+            'location_id': locationId,
+            'date': now,
+            'fajr_time': '00:00',
+            'sunrise_time': '00:00',
+            'dhuhr_time': '00:00',
+            'asr_time': '00:00',
+            'maghrib_time': '00:00',
+            'isha_time': '00:00',
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+
+    // تكملة إنشاء بقية الجداول
 
     // جدول الأذكار
     await db.execute('''
@@ -55,32 +182,6 @@ class AppDatabase {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
         content TEXT NOT NULL
-      )
-    ''');
-
-    // جدول الأذان الحالي
-    await db.execute('''
-      CREATE TABLE $tableCurrentAdhan (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        prayer_name TEXT NOT NULL,
-        prayer_time TEXT NOT NULL,
-        next_prayer_name TEXT NOT NULL,
-        next_prayer_time TEXT NOT NULL,
-        current_date TEXT NOT NULL
-      )
-    ''');
-
-    // جدول الموقع الحالي
-    await db.execute('''
-      CREATE TABLE $tableCurrentLocation (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        latitude REAL NOT NULL,
-        longitude REAL NOT NULL,
-        city TEXT,
-        country TEXT,
-        timezone TEXT,
-        calculation_method TEXT NOT NULL,
-        Madhab TEXT NOT NULL
       )
     ''');
 
@@ -131,21 +232,6 @@ class AppDatabase {
       )
     ''');
 
-    // جدول المواقع
-    await db.execute('''
-      CREATE TABLE $tableLocation (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        latitude REAL NOT NULL,
-        longitude REAL NOT NULL,
-        city TEXT,
-        country TEXT,
-        timezone TEXT,
-        calculation_method TEXT NOT NULL,
-        adjustment_method TEXT NOT NULL
-      )
-    ''');
-
     // جدول سجل العبادات
     await db.execute('''
       CREATE TABLE $tableWorshipHistory (
@@ -187,7 +273,7 @@ class AppDatabase {
         source TEXT NOT NULL,
         theme TEXT
       )
-      ''');
+    ''');
 
     // جدول الرسائل اليومية
     await db.execute('''
@@ -217,8 +303,5 @@ class AppDatabase {
   static Future<void> _onUpgrade(
       Database db, int oldVersion, int newVersion) async {
     // سيتم تنفيذ هذا عند ترقية الإصدار
-    if (oldVersion < 2) {
-      // مثال على ترقية مستقبلية
-    }
   }
 }

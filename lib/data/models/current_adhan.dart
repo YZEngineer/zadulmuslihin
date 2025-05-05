@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'adhan_time.dart';
 
 /// نموذج يمثل الأذان الحالي (الأذان النشط حالياً)
 class CurrentAdhan {
@@ -16,12 +17,12 @@ class CurrentAdhan {
     required this.id,
     required this.locationId,
     required this.date,
-    required this.fajrTime,
-    required this.sunriseTime,
-    required this.dhuhrTime,
-    required this.asrTime,
-    required this.maghribTime,
-    required this.ishaTime,
+    this.fajrTime = '00:00',
+    this.sunriseTime = '00:00',
+    this.dhuhrTime = '00:00',
+    this.asrTime = '00:00',
+    this.maghribTime = '00:00',
+    this.ishaTime = '00:00',
   }) {
     // التحقق من صحة صيغة أوقات الصلاة
     if (!isValidTimeFormat(fajrTime)) {
@@ -48,6 +49,20 @@ class CurrentAdhan {
   static bool isValidTimeFormat(String time) {
     final RegExp timeRegex = RegExp(r'^([01]\d|2[0-3]):([0-5]\d)$');
     return timeRegex.hasMatch(time);
+  }
+
+  factory CurrentAdhan.fromAdhanTimes(AdhanTimes adhanTimes) {
+    return CurrentAdhan(
+      id: 1,
+      locationId: adhanTimes.locationId,
+      date: adhanTimes.date,
+      fajrTime: adhanTimes.fajrTime,
+      sunriseTime: adhanTimes.sunriseTime,
+      dhuhrTime: adhanTimes.dhuhrTime,
+      asrTime: adhanTimes.asrTime,
+      maghribTime: adhanTimes.maghribTime,
+      ishaTime: adhanTimes.ishaTime,
+    );
   }
 
   /// إنشاء نموذج من خريطة بيانات
@@ -78,7 +93,7 @@ class CurrentAdhan {
   /// تحويل النموذج إلى خريطة بيانات لحفظها في قاعدة البيانات
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
+      'id': id > 0 ? id : null, // لا نضمن المعرف إذا كان -1 (سجل جديد)
       'location_id': locationId,
       'date': DateFormat('yyyy-MM-dd').format(date),
       'fajr_time': fajrTime,

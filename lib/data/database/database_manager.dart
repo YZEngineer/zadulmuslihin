@@ -10,6 +10,7 @@ import '../models/quran_verses.dart';
 import '../models/islamic_information.dart';
 import '../models/daily_message.dart';
 import '../models/thought.dart';
+import '../models/location.dart';
 
 /// مدير قاعدة البيانات المسؤول عن تهيئة وتعبئة البيانات
 class DatabaseManager {

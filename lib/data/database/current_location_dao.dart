@@ -8,73 +8,70 @@ class CurrentLocationDao {
   final _databaseHelper = DatabaseHelper.instance;
   final String _tableName = AppDatabase.tableCurrentLocation;
 
-  /// إدراج أو تحديث بيانات الموقع الحالي
-  Future<int> insertOrUpdate(CurrentLocation location) async {
-    // التحقق من وجود سجل أولاً
-    final existingRecords = await getAll();
-
-    if (existingRecords.isEmpty) {
-      // إدراج سجل جديد
-      return await _databaseHelper.insert(_tableName, location.toMap());
-    } else {
-      // تحديث السجل القائم (نحتفظ بسجل واحد فقط)
-      final existingId = existingRecords.first.id;
-
-      // تهيئة بيانات محدثة بالمعرف الحالي
-      Map<String, dynamic> updatedData = location.toMap();
-      updatedData['id'] = existingId;
-
-      return await _databaseHelper
-          .update(_tableName, updatedData, 'id = ?', [existingId]);
-    }
-  }
-
   /// الحصول على بيانات الموقع الحالي
   Future<List<CurrentLocation>> getAll() async {
-    final result = await _databaseHelper.query(_tableName);
-    return result.map((map) => CurrentLocation.fromMap(map)).toList();
+    try {
+      final result = await _databaseHelper.query(_tableName);
+      return result.map((map) => CurrentLocation.fromMap(map)).toList();
+    } catch (e) {
+      print('خطأ في الحصول على بيانات الموقع الحالي: $e');
+      return [];
+    }
   }
 
-  /// الحصول على الموقع الحالي إن وجد
-  Future<CurrentLocation?> getCurrent() async {
+  Future<int> getCurrentLocationId() async {
     final records = await getAll();
     if (records.isEmpty) {
+      print('لم يتم العثور على سجل موقع حالي، وهذا غير متوقع');
+      return -1;
+    }
+    return records.first.locationId;
+  }
+
+  /// الحصول على الموقع الحالي
+  Future<CurrentLocation?> getCurrentLocation() async {
+    try {
+      final records = await getAll();
+      if (records.isEmpty) {
+        print('لم يتم العثور على سجل موقع حالي، وهذا غير متوقع');
+        return null;
+      }
+      return records.first;
+    } catch (e) {
+      print('خطأ في الحصول على الموقع الحالي: $e');
       return null;
     }
-    return records.first;
   }
 
-  /// تحديث المدينة والدولة
-  Future<int> updateLocationDetails(int id, String city, String country) async {
-    final now = DateTime.now();
-    final formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
+  /// تحديث معرف الموقع المختار
+  Future<int> updateLocationId(int newLocationId) async {
+    try {
+      // التحقق أولاً من وجود الموقع المطلوب في جدول المواقع
+      final locationsTable = AppDatabase.tableLocation;
+      final locationResult = await _databaseHelper.query(
+        locationsTable,
+        where: 'id = ?',
+        whereArgs: [newLocationId],
+      );
 
-    return await _databaseHelper.update(
-        _tableName,
-        {'city': city, 'country': country, 'last_updated': formattedDate},
-        'id = ?',
-        [id]);
-  }
+      if (locationResult.isEmpty) {
+        print('الموقع رقم $newLocationId غير موجود في جدول المواقع');
+        return -1;
+      }
 
-  /// تحديث الإحداثيات
-  Future<int> updateCoordinates(
-      int id, double latitude, double longitude) async {
-    final now = DateTime.now();
-    final formattedDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
+      // الحصول على سجل الموقع الحالي
+      final records = await getAll();
+      if (records.isEmpty) {
+        print('لم يتم العثور على سجل الموقع الحالي، وهذا غير متوقع');
+        return -1;
+      }
 
-    return await _databaseHelper.update(
-        _tableName,
-        {
-          'latitude': latitude,
-          'longitude': longitude,
-          'last_updated': formattedDate
-        },
-        'id = ?',
-        [id]);
-  }
-
-  /// حذف جميع السجلات
-  Future<int> deleteAll() async {
-    return await _databaseHelper.delete(_tableName, '', []);
+      // تحديث السجل الموجود
+      return await _databaseHelper.update(_tableName,
+          {'location_id': newLocationId}, 'id = ?', [records.first.id]);
+    } catch (e) {
+      print('خطأ في تحديث معرف الموقع: $e');
+      return -1;
+    }
   }
 }

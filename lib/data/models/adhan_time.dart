@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 /// نموذج يمثل أوقات الأذان ليوم واحد
 class AdhanTimes {
   final int? id;
+  final int locationId; // معرف الموقع المرتبط بأوقات الأذان
   final DateTime date; // تاريخ اليوم بتنسيق YYYY-MM-DD
   final String fajrTime; // وقت أذان الفجر
   final String sunriseTime; // وقت الشروق
@@ -13,13 +14,14 @@ class AdhanTimes {
 
   AdhanTimes({
     this.id,
+    required this.locationId,
     required this.date,
-    required this.fajrTime,
-    required this.sunriseTime,
-    required this.dhuhrTime,
-    required this.asrTime,
-    required this.maghribTime,
-    required this.ishaTime,
+    this.fajrTime = '00:00',
+    this.sunriseTime = '00:00',
+    this.dhuhrTime = '00:00',
+    this.asrTime = '00:00',
+    this.maghribTime = '00:00',
+    this.ishaTime = '00:00',
   }) {
     // التحقق من صحة صيغة أوقات الصلاة
     if (!isValidTimeFormat(fajrTime)) {
@@ -56,6 +58,7 @@ class AdhanTimes {
 
     return AdhanTimes(
       id: map['id'],
+      locationId: map['location_id'],
       date: dateTime,
       fajrTime: map['fajr_time'] ?? '00:00',
       sunriseTime: map['sunrise_time'] ?? '00:00',
@@ -70,6 +73,7 @@ class AdhanTimes {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'location_id': locationId,
       'date': DateFormat('yyyy-MM-dd').format(date),
       'fajr_time': fajrTime,
       'sunrise_time': sunriseTime,
@@ -89,6 +93,7 @@ class AdhanTimes {
   /// إنشاء نسخة معدلة من هذا النموذج
   AdhanTimes copyWith({
     int? id,
+    int? locationId,
     DateTime? date,
     String? fajrTime,
     String? sunriseTime,
@@ -99,6 +104,7 @@ class AdhanTimes {
   }) {
     return AdhanTimes(
       id: id ?? this.id,
+      locationId: locationId ?? this.locationId,
       date: date ?? this.date,
       fajrTime: fajrTime ?? this.fajrTime,
       sunriseTime: sunriseTime ?? this.sunriseTime,
@@ -111,7 +117,7 @@ class AdhanTimes {
 
   @override
   String toString() {
-    return 'AdhanTimes(id: $id, date: ${DateFormat('yyyy-MM-dd').format(date)}, '
+    return 'AdhanTimes(id: $id, locationId: $locationId, date: ${DateFormat('yyyy-MM-dd').format(date)}, '
         'fajrTime: $fajrTime, sunriseTime: $sunriseTime, '
         'dhuhrTime: $dhuhrTime, asrTime: $asrTime, '
         'maghribTime: $maghribTime, ishaTime: $ishaTime)';
