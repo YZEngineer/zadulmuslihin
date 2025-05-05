@@ -5,7 +5,7 @@ import 'package:path/path.dart';
 class AppDatabase {
   static const String databaseName = 'zadulmuslihin.db';
   static const int databaseVersion = 1;
-
+  
   // أسماء الجداول
   static const String tableAdhanTimes = 'adhan_times';
   static const String tableAthkar = 'athkar';
@@ -99,7 +99,6 @@ class AppDatabase {
     await db.execute('''
       CREATE TABLE $tableDailyWorship (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        date TEXT NOT NULL,
         fajr_prayer INTEGER NOT NULL,
         dhuhr_prayer INTEGER NOT NULL,
         asr_prayer INTEGER NOT NULL,
@@ -176,7 +175,7 @@ class AppDatabase {
         title TEXT NOT NULL,
         content TEXT NOT NULL,
         category INTEGER NOT NULL,
-        day INTEGER NOT NULL
+        date TEXT NOT NULL
       )
     ''');
 

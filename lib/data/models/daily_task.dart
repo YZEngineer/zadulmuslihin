@@ -26,9 +26,9 @@ class DailyTask {
     return DailyTask(
       id: map['id'],
       title: map['title'],
-      isCompleted: map['isCompleted'] == 1,
+      isCompleted: map['is_completed'] == 1,
       category: map['category'],
-      workOn: map['workOn'] == 1,
+      workOn: map['work_on'] == 1,
     );
   }
 
@@ -36,9 +36,9 @@ class DailyTask {
     return {
       'id': id,
       'title': title,
-      'isCompleted': isCompleted ? 1 : 0,
+      'is_completed': isCompleted ? 1 : 0,
       'category': category,
-      'workOn': workOn ? 1 : 0,
+      'work_on': workOn ? 1 : 0,
     };
   }
 

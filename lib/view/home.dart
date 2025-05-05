@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
   @override
@@ -20,6 +21,4 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
- 
 }

@@ -72,24 +72,50 @@ class DatabaseManager {
     if (tasks.isEmpty) {
       await _populateDailyTasks();
     }
-
   }
 
   /// تعبئة المهام اليومية
   /// رياضة, عادات ,اهداف
-  /// 5 رياضة و3 اهداف و2 عادة اضافة 
+  /// 5 رياضة و3 اهداف و2 عادة اضافة
   Future<void> _populateDailyTasks() async {
     final tasks = [
-      DailyTask(title: "ضغط Push-ups", isCompleted: false, workOn: false, category: 1),
-      DailyTask(title: "جري" , isCompleted: false, workOn: false, category: 1),
-      DailyTask(title: "Squats القرفصاء ", isCompleted: false, workOn: false, category: 1),
-      DailyTask(title: "Plan بلانك", isCompleted: false, workOn: false, category: 1),
-      DailyTask(title: "Dips رفع", isCompleted: false, workOn: false, category: 1),
-      DailyTask(title: "Crunches تمرين المعدة", isCompleted: false, workOn: false, category: 1),
-      DailyTask(title: "تعلم السيرة", isCompleted: false, workOn: false, category: 2),
-      DailyTask(title: " x قراءة كتاب", isCompleted: false, workOn: false, category: 2),
-      DailyTask(title: "استماع درس عقيدة", isCompleted: false, workOn: false, category: 2),
-      DailyTask(title: "محاسبة النفس", isCompleted: false, workOn: false, category: 3),
+      DailyTask(
+          title: "ضغط Push-ups",
+          isCompleted: false,
+          workOn: false,
+          category: 1),
+      DailyTask(title: "جري", isCompleted: false, workOn: false, category: 1),
+      DailyTask(
+          title: "Squats القرفصاء ",
+          isCompleted: false,
+          workOn: false,
+          category: 1),
+      DailyTask(
+          title: "Plan بلانك", isCompleted: false, workOn: false, category: 1),
+      DailyTask(
+          title: "Dips رفع", isCompleted: false, workOn: false, category: 1),
+      DailyTask(
+          title: "Crunches تمرين المعدة",
+          isCompleted: false,
+          workOn: false,
+          category: 1),
+      DailyTask(
+          title: "تعلم السيرة", isCompleted: false, workOn: false, category: 2),
+      DailyTask(
+          title: " x قراءة كتاب",
+          isCompleted: false,
+          workOn: false,
+          category: 2),
+      DailyTask(
+          title: "استماع درس عقيدة",
+          isCompleted: false,
+          workOn: false,
+          category: 2),
+      DailyTask(
+          title: "محاسبة النفس",
+          isCompleted: false,
+          workOn: false,
+          category: 3),
       DailyTask(title: "تزكية", isCompleted: false, workOn: false, category: 3),
     ];
 
@@ -123,8 +149,14 @@ class DatabaseManager {
   /// تعبئة الأذكار
   Future<void> _populateAthkar() async {
     final athkars = [
-      Athkar(content:"أصبحنا وأصبح الملك لله والحمد لله لا إله إلا الله وحده لا شريك له",title: "أذكار الصباح"),
-      Athkar(content:"أمسينا وأمسى الملك لله والحمد لله لا إله إلا الله وحده لا شريك له",title: "أذكار المساء"),
+      Athkar(
+          content:
+              "أصبحنا وأصبح الملك لله والحمد لله لا إله إلا الله وحده لا شريك له",
+          title: "أذكار الصباح"),
+      Athkar(
+          content:
+              "أمسينا وأمسى الملك لله والحمد لله لا إله إلا الله وحده لا شريك له",
+          title: "أذكار المساء"),
       Athkar(content: "اللهم افتح لي أبواب رحمتك", title: "دعاء دخول المسجد"),
     ];
 
@@ -214,17 +246,24 @@ class DatabaseManager {
 
   /// تعبئة الأفكار
   Future<void> _populateThoughts() async {
+    final currentDate = DateTime.now();
+
     final thoughts = [
       Thought(
-          title: "تفكر", content: "تفكر في خلق السماوات والأرض", category: 1),
+          title: "تفكر",
+          content: "تفكر في خلق السماوات والأرض",
+          category: 1,
+          date: currentDate),
       Thought(
           title: "شكر",
           content: "التفكر في نعم الله التي لا تعد ولا تحصى",
-          category: 1),
+          category: 1,
+          date: currentDate),
       Thought(
           title: "تذكير",
           content: "تذكر الموت فإنه يزهد في الدنيا",
-          category: 2),
+          category: 2,
+          date: currentDate),
     ];
 
     for (var thought in thoughts) {

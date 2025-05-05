@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'data/database/database_manager.dart';
 import 'view/home.dart';
+import 'test_db.dart'; // استيراد ملف الاختبار
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // تهيئة قاعدة البيانات
   await DatabaseManager.instance.initialize();
+
+  // اختبار قاعدة البيانات
+  await testDatabase();
 
   runApp(const MyApp());
 }

@@ -3,14 +3,14 @@ class Thought {
   final String title;
   final String content;
   final int category; // 0: دنيوي، 1: أخروي، 2: كلاهما
-  final int? day;
+  final DateTime date; // اليوم مطلوب
 
   Thought({
     this.id,
     required this.title,
     required this.content,
     required this.category,
-    this.day,
+    required this.date,
   });
 
   factory Thought.fromJson(Map<String, dynamic> json) {
@@ -19,7 +19,7 @@ class Thought {
       title: json['title'],
       content: json['content'],
       category: json['category'],
-      day: json['day'],
+      date: json['date'],
     );
   }
 
@@ -29,7 +29,7 @@ class Thought {
       'title': title,
       'content': content,
       'category': category,
-      'day': day,
+      'date': date,
     };
   }
 
