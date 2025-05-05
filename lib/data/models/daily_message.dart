@@ -1,5 +1,5 @@
 class DailyMessage {
-  final int id;
+  final int? id;
   final String title;
   final String content;
   final int category;
@@ -7,7 +7,7 @@ class DailyMessage {
   final DateTime date;
 
   DailyMessage({
-    required this.id,
+    this.id,
     required this.title,
     required this.content,
     required this.category,
@@ -22,7 +22,7 @@ class DailyMessage {
       content: map['content'],
       category: map['category'],
       source: map['source'],
-      date: map['date'],
+      date: map['date'] is String ? DateTime.parse(map['date']) : map['date'],
     );
   }
 
@@ -33,7 +33,7 @@ class DailyMessage {
       'content': content,
       'category': category,
       'source': source,
-      'date': date,
+      'date': date.toIso8601String(),
     };
   }
 
@@ -60,4 +60,3 @@ class DailyMessage {
     return 'DailyMessage(id: $id, title: $title, content: $content, category: $category, source: $source, date: $date)';
   }
 }
-

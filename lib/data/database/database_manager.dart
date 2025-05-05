@@ -164,21 +164,20 @@ class DatabaseManager {
 
     final messages = [
       DailyMessage(
-          id: 1,
+
           title: "الإخلاص في العمل",
           content: "اجعل نيتك خالصة لله في كل أعمالك، فإنما الأعمال بالنيات",
           category: 1,
           source: "من أقوال السلف",
           date: currentDate),
       DailyMessage(
-          id: 2,
+
           title: "صلة الرحم",
           content: "حافظ على صلة الرحم فإنها تزيد في العمر وتوسع في الرزق",
           category: 2,
           source: "من الأحاديث النبوية",
           date: currentDate),
       DailyMessage(
-          id: 3,
           title: "ذكر الله",
           content: "اجعل لسانك رطباً بذكر الله، فإن ذكر الله طمأنينة للقلوب",
           category: 3,
