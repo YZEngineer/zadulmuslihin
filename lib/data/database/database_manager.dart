@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'package:sqflite/sqflite.dart';
-import 'package:intl/intl.dart';
 import '../models/daily_task.dart';
 import 'database_helper.dart';
 import 'database.dart';
@@ -10,7 +8,7 @@ import '../models/quran_verses.dart';
 import '../models/islamic_information.dart';
 import '../models/daily_message.dart';
 import '../models/thought.dart';
-import '../models/location.dart';
+import '../models/location.dart'; // in database.dart
 
 /// مدير قاعدة البيانات المسؤول عن تهيئة وتعبئة البيانات
 class DatabaseManager {

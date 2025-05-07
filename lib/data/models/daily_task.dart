@@ -28,7 +28,7 @@ class DailyTask {
       title: map['title'],
       isCompleted: map['is_completed'] == 1,
       category: map['category'],
-      workOn: map['work_on'] == 1,
+      workOn: map['is_on_working'] == 1,
     );
   }
 
@@ -38,7 +38,7 @@ class DailyTask {
       'title': title,
       'is_completed': isCompleted ? 1 : 0,
       'category': category,
-      'work_on': workOn ? 1 : 0,
+      'is_on_working': workOn ? 1 : 0,
     };
   }
 

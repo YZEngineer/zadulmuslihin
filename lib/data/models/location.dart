@@ -1,4 +1,7 @@
+import '../../core/functions/utils.dart';
+
 /// نموذج يمثل موقعًا جغرافيًا يمكن تخزينه
+/// 
 class Location {
   final int? id;
   final double latitude;
@@ -65,8 +68,8 @@ class Location {
   factory Location.fromMap(Map<String, dynamic> map) {
     return Location(
       id: map['id'],
-      latitude: _parseDouble(map['latitude']),
-      longitude: _parseDouble(map['longitude']),
+      latitude: parseDouble(map['latitude']),
+      longitude: parseDouble(map['longitude']),
       country: map['country'],
       city: map['city'],
       timezone: map['timezone'],
@@ -75,22 +78,7 @@ class Location {
     );
   }
 
-  /// تحويل قيمة إلى double مع التعامل مع الأنواع المختلفة
-  static double _parseDouble(dynamic value) {
-    if (value == null) {
-      throw ArgumentError('قيمة null غير مقبولة للإحداثيات');
-    }
-    if (value is double) {
-      return value;
-    }
-    if (value is int) {
-      return value.toDouble();
-    }
-    if (value is String) {
-      return double.parse(value);
-    }
-    throw ArgumentError('لا يمكن تحويل القيمة إلى double: $value');
-  }
+
 
   /// تحويل النموذج إلى خريطة بيانات لحفظها في قاعدة البيانات
   Map<String, dynamic> toMap() {

@@ -14,102 +14,57 @@ class QuranVersesDao {
 
   /// تحديث آية قرآنية موجودة
   Future<int> update(QuranVerses verse) async {
-    if (verse.id == null) {
-      throw ArgumentError('لا يمكن تحديث آية قرآنية بدون معرف');
-    }
-
-    return await _databaseHelper
-        .update(_tableName, verse.toMap(), 'id = ?', [verse.id]);
+    if (verse.id == null) {throw ArgumentError('لا يمكن تحديث آية قرآنية بدون معرف');}
+    return await _databaseHelper.update(_tableName, verse.toMap(), 'id = ?', [verse.id]);
   }
 
   /// حذف آية قرآنية بواسطة المعرف
   Future<int> delete(int id) async {
-    return await _databaseHelper.delete(
-      _tableName,
-      'id = ?',
-      [id],
-    );
-  }
+    return await _databaseHelper.delete(_tableName, 'id = ?', [id]);}
 
   /// الحصول على آية قرآنية بواسطة المعرف
   Future<QuranVerses?> getById(int id) async {
-    final result = await _databaseHelper.query(
-      _tableName,
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-
-    if (result.isEmpty) {
-      return null;
-    }
-
-    return QuranVerses.fromMap(result.first);
-  }
+    final result = await _databaseHelper.query(_tableName, where: 'id = ?', whereArgs: [id]);
+    if (result.isEmpty) {return null;}
+    return QuranVerses.fromMap(result.first);  }
 
   /// الحصول على جميع الآيات القرآنية
   Future<List<QuranVerses>> getAll() async {
     final result = await _databaseHelper.query(_tableName);
-    return result.map((map) => QuranVerses.fromMap(map)).toList();
-  }
+    return result.map((map) => QuranVerses.fromMap(map)).toList();}
 
   /// الحصول على الآيات القرآنية حسب السورة
   Future<List<QuranVerses>> getBySurah(String surah) async {
     final result = await _databaseHelper.query(
-      _tableName,
-      where: 'surah = ?',
-      whereArgs: [surah],
-      orderBy: 'verse_number ASC',
-    );
-
-    return result.map((map) => QuranVerses.fromMap(map)).toList();
-  }
+      _tableName, where: 'surah = ?', whereArgs: [surah], orderBy: 'verse_number ASC');
+    return result.map((map) => QuranVerses.fromMap(map)).toList(); }
 
   /// الحصول على آية قرآنية محددة حسب السورة ورقم الآية
   Future<QuranVerses?> getByVerseNumber(String surah, int verseNumber) async {
     final result = await _databaseHelper.query(
-      _tableName,
-      where: 'surah = ? AND verse_number = ?',
-      whereArgs: [surah, verseNumber],
-    );
+      _tableName,where: 'surah = ? AND verse_number = ?',whereArgs: [surah, verseNumber]);
 
-    if (result.isEmpty) {
-      return null;
-    }
-
-    return QuranVerses.fromMap(result.first);
-  }
+    if (result.isEmpty) {return null;}
+    return QuranVerses.fromMap(result.first);  }
 
   /// الحصول على الآيات القرآنية حسب الموضوع
   Future<List<QuranVerses>> getByTheme(String theme) async {
     final result = await _databaseHelper.query(
       _tableName,
-      where: 'theme = ?',
-      whereArgs: [theme],
-      orderBy: 'surah ASC, verse_number ASC',
-    );
-
-    return result.map((map) => QuranVerses.fromMap(map)).toList();
-  }
+      where: 'theme = ?',whereArgs: [theme],orderBy: 'surah ASC, verse_number ASC'  );
+    return result.map((map) => QuranVerses.fromMap(map)).toList();  }
 
   /// الحصول على عدد الآيات القرآنية
   Future<int> getCount() async {
-    final result = await _databaseHelper
-        .rawQuery('SELECT COUNT(*) as count FROM $_tableName');
-
-    return result.first['count'] as int;
-  }
+    final result = await _databaseHelper.rawQuery('SELECT COUNT(*) as count FROM $_tableName');
+    return result.first['count'] as int;  }
 
   /// البحث في الآيات القرآنية
   Future<List<QuranVerses>> search(String keyword) async {
     final result = await _databaseHelper.query(
-      _tableName,
-      where: 'text LIKE ? OR translation LIKE ? OR theme LIKE ?',
-      whereArgs: ['%$keyword%', '%$keyword%', '%$keyword%'],
-      orderBy: 'surah ASC, verse_number ASC',
-    );
-
-    return result.map((map) => QuranVerses.fromMap(map)).toList();
-  }
+      _tableName,where: 'text LIKE ? OR translation LIKE ? OR theme LIKE ?',
+      whereArgs: ['%$keyword%', '%$keyword%', '%$keyword%'],orderBy: 'surah ASC, verse_number ASC'
+    );  return result.map((map) => QuranVerses.fromMap(map)).toList();  }
 
   /// الحصول على قائمة السور المتاحة
   Future<List<String>> getAvailableSurahs() async {

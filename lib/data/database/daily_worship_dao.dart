@@ -1,7 +1,7 @@
 import '../models/daily_worship.dart';
 import 'database.dart';
 import 'database_helper.dart';
-import 'package:intl/intl.dart';
+
 
 /// فئة للتعامل مع بيانات العبادات اليومية في قاعدة البيانات
 class DailyWorshipDao {
@@ -11,9 +11,7 @@ class DailyWorshipDao {
   /// إدراج عبادة يومية جديدة أو تحديث القائمة
   Future<int> insert(DailyWorship dailyWorship) async {
     if (_tableName.isEmpty) {return await _databaseHelper.insert(_tableName,dailyWorship.toMap());}
-    else{return await _databaseHelper.update(_tableName, dailyWorship.toMap(), 'id = ?', [1]);}
-
-  }
+    else{return await _databaseHelper.update(_tableName, dailyWorship.toMap(), 'id = ?', [1]);} }
 
   /// تحديث عبادة يومية موجودة
   Future<int> update(DailyWorship dailyWorship) async {
@@ -29,12 +27,10 @@ class DailyWorshipDao {
   Future<int> updatePrayerStatus(String prayerName, bool completed) async {
     // تحديث حالة الصلاة المحددة
     final value = completed ? 1 : 0;
-    ///final columnName = '${prayerName.toLowerCase()}_prayer';
-
+    ///final columnName = '${prayerName.toLowerCase()}_prayer'; /// ادخال الاسم بشكل صحيح بدل التغيير :)
     final result = await _databaseHelper.update(_tableName, {prayerName: value},
         'id = ?', [1]); // استخدام معرّف ثابت = 1
-    return result;
-  }
+    return result;}
 
   /// حذف سجل عبادة بواسطة المعرف
   Future<int> delete(int id) async {

@@ -1,5 +1,5 @@
 import 'package:intl/intl.dart';
-
+import '../../core/functions/utils.dart';
 /// نموذج يمثل أوقات الأذان ليوم واحد
 class AdhanTimes {
   final int? id;
@@ -84,11 +84,7 @@ class AdhanTimes {
     };
   }
 
-  /// التحقق من صحة صيغة الوقت
-  static bool isValidTimeFormat(String time) {
-    final RegExp timeRegex = RegExp(r'^([01]\d|2[0-3]):([0-5]\d)$');
-    return timeRegex.hasMatch(time);
-  }
+
 
   /// إنشاء نسخة معدلة من هذا النموذج
   AdhanTimes copyWith({

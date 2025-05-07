@@ -46,6 +46,10 @@ class CurrentLocation {
     );
   }
 
+  int getCurrentLocationId() {
+    return locationId;
+  }
+
   @override
   String toString() {
     return 'CurrentLocation(id: $id, locationId: $locationId)';

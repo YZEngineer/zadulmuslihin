@@ -191,7 +191,7 @@ class AppDatabase {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
         is_completed INTEGER NOT NULL,
-        work_on INTEGER NOT NULL,
+        is_on_working INTEGER NOT NULL,
         category INTEGER NOT NULL
       )
     ''');

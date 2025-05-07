@@ -30,11 +30,8 @@ class DatabaseHelper {
   Future<int> insertOrReplace(String table, Map<String, dynamic> row) async {
     try {
       Database db = await database;
-      return await db.insert(
-        table,
-        row,
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      return await db.insert(table, row,
+          conflictAlgorithm: ConflictAlgorithm.replace);
     } catch (e) {
       print('خطأ في إدراج أو استبدال البيانات: $e');
       return -1;

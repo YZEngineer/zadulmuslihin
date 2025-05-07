@@ -1,6 +1,6 @@
 import 'package:intl/intl.dart';
 import 'adhan_time.dart';
-
+import '../../core/functions/utils.dart';
 /// نموذج يمثل الأذان الحالي (الأذان النشط حالياً)
 class CurrentAdhan {
   final int id;
@@ -45,11 +45,6 @@ class CurrentAdhan {
     }
   }
 
-  /// التحقق من صحة صيغة الوقت
-  static bool isValidTimeFormat(String time) {
-    final RegExp timeRegex = RegExp(r'^([01]\d|2[0-3]):([0-5]\d)$');
-    return timeRegex.hasMatch(time);
-  }
 
   factory CurrentAdhan.fromAdhanTimes(AdhanTimes adhanTimes) {
     return CurrentAdhan(
@@ -78,7 +73,7 @@ class CurrentAdhan {
     }
 
     return CurrentAdhan(
-      id: map['id'],
+      id:1,
       locationId: map['location_id'],
       date: dateTime,
       fajrTime: map['fajr_time'] ?? '00:00',

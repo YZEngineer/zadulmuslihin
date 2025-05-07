@@ -8,6 +8,12 @@ class AdhanTimesDao {
   final _databaseHelper = DatabaseHelper.instance;
   final String _tableName = AppDatabase.tableAdhanTimes;
 
+  /// الحصول على جميع أوقات الأذان
+  Future<List<AdhanTimes>> getAll() async {
+    final result = await _databaseHelper.query(_tableName);
+    return result.map((map) => AdhanTimes.fromMap(map)).toList();
+  }
+
   /// إدراج أوقات الأذان وتعامل مع الإدخالات المكررة
   Future<int> insertAdhanTimes(AdhanTimes adhanTimes) async {
     try {
@@ -74,17 +80,10 @@ class AdhanTimesDao {
         );
 
         // محاولة إدراج السجل في قاعدة البيانات
-        try {
-          await _databaseHelper.insertOrReplace(
-              _tableName, newAdhanTimes.toMap());
-          print(
-              'تم إنشاء سجل جديد لأوقات الأذان لتاريخ $formattedDate وموقع $locationId');
-        } catch (insertError) {
-          print('خطأ في إدراج سجل جديد لأوقات الأذان: $insertError');
-        }
-
-        return newAdhanTimes;
-      }
+        try {await _databaseHelper.insertOrReplace(_tableName, newAdhanTimes.toMap());
+          print('تم إنشاء سجل جديد لأوقات الأذان لتاريخ $formattedDate وموقع $locationId');
+        } catch (insertError) {print('خطأ في إدراج سجل جديد لأوقات الأذان: $insertError');}
+        return newAdhanTimes;}
 
       return AdhanTimes.fromMap(result.first);
     } catch (e) {
@@ -101,58 +100,13 @@ class AdhanTimesDao {
       );
     }
   }
-
-  /// الحصول على أوقات الأذان لتاريخ معين
-  Future<List<AdhanTimes>> getByDate(DateTime date) async {
-    try {
-      final formattedDate = DateFormat('yyyy-MM-dd').format(date);
-      final result = await _databaseHelper.query(
-        _tableName,
-        where: 'date = ?',
-        whereArgs: [formattedDate],
-      );
-
-      return result.map((map) => AdhanTimes.fromMap(map)).toList();
-    } catch (e) {
-      print('خطأ في استرجاع أوقات الأذان لتاريخ معين: $e');
-      return [];
-    }
-  }
-
-  /// الحصول على أوقات الأذان لفترة زمنية وموقع محدد
-  Future<List<AdhanTimes>> getByDateRangeAndLocation(
-      DateTime startDate, DateTime endDate, int locationId) async {
-    try {
-      final formattedStartDate = DateFormat('yyyy-MM-dd').format(startDate);
-      final formattedEndDate = DateFormat('yyyy-MM-dd').format(endDate);
-
-      final result = await _databaseHelper.query(
-        _tableName,
-        where: 'date BETWEEN ? AND ? AND location_id = ?',
-        whereArgs: [formattedStartDate, formattedEndDate, locationId],
-        orderBy: 'date ASC',
-      );
-
-      return result.map((map) => AdhanTimes.fromMap(map)).toList();
-    } catch (e) {
-      print('خطأ في استرجاع أوقات الأذان لفترة زمنية وموقع: $e');
-      return [];
-    }
-  }
-
   /// الحصول على أحدث أوقات أذان للموقع
   Future<AdhanTimes?> getLatest(int locationId) async {
     try {
-      final result = await _databaseHelper.query(_tableName,
-          where: 'location_id = ?',
-          whereArgs: [locationId],
-          orderBy: 'date DESC',
-          limit: 1);
+      final result = await _databaseHelper.query(_tableName,where: 'location_id = ?'
+      ,whereArgs: [locationId],orderBy: 'date DESC',limit: 1);
 
-      if (result.isEmpty) {
-        return null;
-      }
-
+      if (result.isEmpty) {return null;}
       return AdhanTimes.fromMap(result.first);
     } catch (e) {
       print('خطأ في استرجاع أحدث أوقات أذان للموقع $locationId: $e');
@@ -160,44 +114,4 @@ class AdhanTimesDao {
     }
   }
 
-  /// الحصول على أوقات الأذان الحالية لموقع معين
-  Future<AdhanTimes?> getCurrentForLocation(int locationId) async {
-    try {
-      final now = DateTime.now();
-      final formattedDate = DateFormat('yyyy-MM-dd').format(now);
-
-      final result = await _databaseHelper.query(
-        _tableName,
-        where: 'date = ? AND location_id = ?',
-        whereArgs: [formattedDate, locationId],
-      );
-
-      if (result.isEmpty) {
-        // إذا لم يتم العثور على سجل لليوم الحالي، نقوم بإنشاء واحد
-        print('إنشاء سجل جديد لأوقات الأذان لليوم الحالي للموقع $locationId');
-
-        AdhanTimes newAdhanTimes = AdhanTimes(
-          locationId: locationId,
-          date: now,
-          fajrTime: '00:00',
-          sunriseTime: '00:00',
-          dhuhrTime: '00:00',
-          asrTime: '00:00',
-          maghribTime: '00:00',
-          ishaTime: '00:00',
-        );
-
-        // استخدام insertOrReplace لتجنب مشاكل UNIQUE
-        await _databaseHelper.insertOrReplace(
-            _tableName, newAdhanTimes.toMap());
-
-        return newAdhanTimes;
-      }
-
-      return AdhanTimes.fromMap(result.first);
-    } catch (e) {
-      print('خطأ في استرجاع أوقات الأذان الحالية للموقع: $e');
-      return null;
-    }
-  }
 }
