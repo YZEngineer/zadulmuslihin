@@ -8,6 +8,7 @@ import '../data/models/adhan_time.dart';
 import '../data/database/current_location_dao.dart';
 import '../data/database/database_helper.dart';
 import '../data/database/database.dart';
+import '../core/functions/utils.dart';
 
 /// خدمة للحصول على أوقات الصلاة من واجهة برمجة التطبيقات
 class PrayerTimesService {
@@ -15,31 +16,14 @@ class PrayerTimesService {
   final AdhanTimesDao _adhanTimesDao = AdhanTimesDao();
   final CurrentLocationDao _currentLocationDao = CurrentLocationDao();
   final LocationDao _locationDao = LocationDao();
-  Timer? _refreshTimer;
   bool _isRefreshing = false;
 
-  factory PrayerTimesService() {
-    return _instance;
-  }
-
+  factory PrayerTimesService() {return _instance;}
   PrayerTimesService._internal();
-
-  /// بدء التحديث التلقائي لأوقات الصلاة كل دقيقة
-  void startAutoRefresh() {
-    // إنشاء تايمر جديد لتحديث أوقات الصلاة كل ساعة
-    _refreshTimer = Timer.periodic(
-      Duration(hours: 1), (_) {refreshAllPrayerTimes();});
-    print('تم بدء التحديث التلقائي لأوقات الصلاة كل ساعة');
-  }
-
-
 
   /// الحصول على أوقات الصلاة من الخدمة الخارجية
   Future<bool> fetchAndStorePrayerTimes({
-    DateTime? date,
-    int? locationId,
-    bool forceUpdate = false,
-  }) async {
+    DateTime? date,int? locationId}) async {
     try {
       // استخدام التاريخ الحالي إذا لم يتم تحديد تاريخ
       final targetDate = date ?? DateTime.now();
@@ -47,15 +31,6 @@ class PrayerTimesService {
       // الحصول على معرف الموقع الحالي إذا لم يتم تحديد موقع
       final targetLocationId =locationId ?? await _currentLocationDao.getCurrentLocationId();
 
-      // التحقق مما إذا كانت البيانات موجودة بالفعل
-      if (!forceUpdate) {
-        final existingData = await _adhanTimesDao.getByDateAndLocation(targetDate, targetLocationId);
-        // التحقق من وجود أوقات صلاة فعلية وليست افتراضية
-        if (true) {
-          print('أوقات الصلاة موجودة بالفعل للتاريخ ${DateFormat('yyyy-MM-dd').format(targetDate)} والموقع $targetLocationId');
-          return true;
-        }
-      }
 
       // الحصول على بيانات الموقع
       final locationData =await _locationDao.getLocationById(targetLocationId);
@@ -70,7 +45,6 @@ class PrayerTimesService {
       final url = Uri.parse('https://api.aladhan.com/v1/timings/$formattedDate?latitude=$latitude&longitude=$longitude&method=$method');
 
       print('جلب أوقات الصلاة من: $url');
-
       // إرسال الطلب
       final response = await http.get(url);
 
@@ -80,37 +54,25 @@ class PrayerTimesService {
         final timings = data['data']['timings'];
 
         print('تم الحصول على أوقات الصلاة بنجاح: $timings');
-
         // إنشاء نموذج أوقات الأذان
         final adhanTimes = AdhanTimes(
           locationId: targetLocationId,
           date: targetDate,
-          fajrTime: _formatTime(timings['Fajr']),
-          sunriseTime: _formatTime(timings['Sunrise']),
-          dhuhrTime: _formatTime(timings['Dhuhr']),
-          asrTime: _formatTime(timings['Asr']),
-          maghribTime: _formatTime(timings['Maghrib']),
-          ishaTime: _formatTime(timings['Isha']),
+          fajrTime: formatTime(timings['Fajr']),
+          sunriseTime: formatTime(timings['Sunrise']),
+          dhuhrTime: formatTime(timings['Dhuhr']),
+          asrTime: formatTime(timings['Asr']),
+          maghribTime: formatTime(timings['Maghrib']),
+          ishaTime: formatTime(timings['Isha']),
         );
-
         // حفظ البيانات في قاعدة البيانات
         final result = await _adhanTimesDao.insertAdhanTimes(adhanTimes);
 
-        if (result > 0) {
-          print('تم حفظ أوقات الصلاة بنجاح في قاعدة البيانات');
-          return true;
-        } else {
-          print('فشل في حفظ أوقات الصلاة في قاعدة البيانات');
-          return false;
-        }
-      } else {
-        print('فشل في الحصول على أوقات الصلاة: ${response.statusCode}');
-        return false;
-      }
-    } catch (e) {
-      print('خطأ في الحصول على أوقات الصلاة: $e');
-      return false;
-    }
+        if (result > 0) {print('تم حفظ أوقات الصلاة بنجاح في قاعدة البيانات');return true;} 
+        else {print('فشل في حفظ أوقات الصلاة في قاعدة البيانات');return false;}
+      } 
+      else {print('فشل في الحصول على أوقات الصلاة: ${response.statusCode}');return false;}
+    } catch (e) {print('خطأ في الحصول على أوقات الصلاة: $e');return false;}
   }
 
   /// الحصول على أوقات الصلاة لتاريخ محدد ولفترة محددة
@@ -137,7 +99,6 @@ class PrayerTimesService {
         final success = await fetchAndStorePrayerTimes(
           date: date,
           locationId: targetLocationId,
-          forceUpdate: forceUpdate,
         );
 
         if (!success) {
@@ -166,7 +127,7 @@ class PrayerTimesService {
 
       // الحصول على أوقات الصلاة
       return await fetchAndStorePrayerTimes(
-        date: targetDate,locationId: locationId,forceUpdate: forceUpdate);
+        date: targetDate,locationId: locationId);
     } catch (e) {
       print('خطأ في الحصول على أوقات الصلاة للتاريخ المحدد: $e');
       return false;
@@ -210,7 +171,6 @@ class PrayerTimesService {
           final success = await fetchAndStorePrayerTimes(
             date: date,
             locationId: locationId,
-            forceUpdate: forceUpdate,
           );
 
           if (success) {
@@ -235,35 +195,5 @@ class PrayerTimesService {
   }
 
 
-  /// تنسيق الوقت من صيغة 24 ساعة إلى صيغة 12 ساعة
-  /// وضع لادوال في مجلد الدوال
-  String _formatTime(String time24) {
-    try {
-      // التحقق من تنسيق الوقت
-      if (time24.contains(' ')) {
-        // إذا كان الوقت بتنسيق 12 ساعة، قم بتحويله إلى تنسيق 24 ساعة
-        final parts = time24.split(' ');
-        final timePart = parts[0];
-        final ampm = parts[1];
-
-        final timeComponents = timePart.split(':');
-        int hours = int.parse(timeComponents[0]);
-
-        if (ampm.toLowerCase() == 'pm' && hours < 12) {
-          hours += 12;
-        } else if (ampm.toLowerCase() == 'am' && hours == 12) {
-          hours = 0;
-        }
-
-        return '${hours.toString().padLeft(2, '0')}:${timeComponents[1]}';
-      } else {
-        // إذا كان الوقت بالفعل بتنسيق 24 ساعة، تأكد من أنه بتنسيق HH:MM
-        final timeComponents = time24.split(':');
-        return '${timeComponents[0].padLeft(2, '0')}:${timeComponents[1]}';
-      }
-    } catch (e) {
-      print('خطأ في تنسيق الوقت: $e');
-      return time24;
-    }
-  }
+  
 }
