@@ -69,6 +69,7 @@ class AdhanTimes {
     );
   }
 
+
   /// تحويل النموذج إلى خريطة بيانات لحفظها في قاعدة البيانات
   Map<String, dynamic> toMap() {
     return {

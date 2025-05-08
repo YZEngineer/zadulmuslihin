@@ -14,6 +14,11 @@ class AdhanTimesDao {
     return result.map((map) => AdhanTimes.fromMap(map)).toList();
   }
 
+  Future<int> adhanTimesCount() async {
+    final result = await _databaseHelper.query(_tableName);
+    return result.length;
+  }
+
   /// إدراج أوقات الأذان وتعامل مع الإدخالات المكررة
   Future<int> insertAdhanTimes(AdhanTimes adhanTimes) async {
     try {

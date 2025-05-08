@@ -49,41 +49,7 @@ class AppDatabase {
         method_id INTEGER NOT NULL)
     ''');
 
-    // إدخال المواقع الأساسية
-    final List<Map<String, dynamic>> defaultLocations = [
-      {
-        'latitude': 24.7136,
-        'longitude': 46.6753,
-        'city': "الرياض",
-        'country': "المملكة العربية السعودية",
-        'timezone': "Asia/Riyadh",
-        'method_id': 1,
-        'madhab': "Hanafi"
-      },
-      {
-        'latitude': 21.4225,
-        'longitude': 39.8262,
-        'city': "مكة المكرمة",
-        'country': "المملكة العربية السعودية",
-        'timezone': "Asia/Riyadh",
-        'method_id': 1,
-        'madhab': "Hanafi"
-      },
-      {
-        'latitude': 31.9552,
-        'longitude': 35.9453,
-        'city': "القدس",
-        'country': "فلسطين",
-        'timezone': "Asia/Jerusalem",
-        'method_id': 1,
-        'madhab': "Hanafi"
-      }
-    ];
-
-    // إضافة المواقع الافتراضية
-    for (var location in defaultLocations) {
-      await db.insert(tableLocation, location);
-    }
+   
 
     // ٢. ثانياً: إنشاء جدول الموقع الحالي
     await db.execute('''

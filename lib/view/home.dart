@@ -239,8 +239,7 @@ class _HomePageState extends State<HomePage> {
       );
 
       // جلب أوقات الصلاة
-      final success =
-          await _prayerTimesService.refreshAllPrayerTimes(forceUpdate: true);
+      final success =await _prayerTimesService.refreshAllPrayerTimes(forceUpdate: true);
 
       // إغلاق مؤشر التحميل
       Navigator.pop(context);

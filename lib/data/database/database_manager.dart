@@ -23,13 +23,13 @@ class DatabaseManager {
     if (_isInitialized) return;
 
     await _databaseHelper.database; // التأكد من إنشاء قاعدة البيانات
-    await _populateInitialData();
+    await populateInitialData();
 
     _isInitialized = true;
   }
 
   /// تعبئة البيانات الأولية
-  Future<void> _populateInitialData() async {
+  Future<void> populateInitialData() async {
     // تعبئة الأحاديث النبوية
     final hadiths = await _databaseHelper.query(AppDatabase.tableHadith);
     if (hadiths.isEmpty) {
@@ -71,6 +71,29 @@ class DatabaseManager {
     if (tasks.isEmpty) {
       await _populateDailyTasks();
     }
+    // تعبئة المواقع
+    final locations = await _databaseHelper.query(AppDatabase.tableLocation);
+    if (locations.isEmpty) {
+      await _populateLocations();
+    }
+    final currentLocation =
+        await _databaseHelper.query(AppDatabase.tableCurrentLocation);
+    if (currentLocation.isEmpty) {
+      await _populateCurrentLocation();
+    }
+
+    final adhanTimes = await _databaseHelper.query(AppDatabase.tableAdhanTimes);
+    if (adhanTimes.isEmpty) {
+      await _populateAdhanTimes();
+    }
+    final currentAdhan =
+        await _databaseHelper.query(AppDatabase.tableCurrentAdhan);
+    if (currentAdhan.isEmpty) {
+      await _populateCurrentAdhan();
+    }
+
+
+    // تعبئة اوقات الصل
   }
 
   /// تعبئة المهام اليومية
@@ -243,26 +266,54 @@ class DatabaseManager {
     }
   }
 
+  // إدخال المواقع الأساسية
+  Future<void> _populateLocations() async {
+
+
+    final List<Location> defaultLocations = [
+      Location(
+          latitude: 24.7136,
+          longitude: 46.6753,
+          city: "الرياض",
+          country: "المملكة العربية السعودية",
+          timezone: "Asia/Riyadh",
+          methodId: 1,
+          madhab: "Hanafi"),
+      Location(
+          latitude: 21.4225,
+          longitude: 39.8262,
+          city: "مكة المكرمة",
+          country: "المملكة العربية السعودية",
+          timezone: "Asia/Riyadh",
+          methodId: 1,
+          madhab: "Hanafi"),
+      Location(
+          latitude: 31.9552,
+          longitude: 35.9453,
+          city: "القدس",
+          country: "فلسطين",
+          timezone: "Asia/Jerusalem",
+        methodId: 1,
+        madhab: "Hanafi"),
+    ];
+
+    // إضافة المواقع الافتراضية
+    for (var location in defaultLocations) {
+      await _databaseHelper.insert(AppDatabase.tableLocation, location.toMap());
+    }
+  }
+
   /// تعبئة الأفكار
   Future<void> _populateThoughts() async {
     final currentDate = DateTime.now();
 
     final thoughts = [
-      Thought(
-          title: "تفكر",
-          content: "تفكر في خلق السماوات والأرض",
-          category: 1,
-          date: currentDate),
-      Thought(
-          title: "شكر",
-          content: "التفكر في نعم الله التي لا تعد ولا تحصى",
-          category: 1,
-          date: currentDate),
-      Thought(
-          title: "تذكير",
-          content: "تذكر الموت فإنه يزهد في الدنيا",
-          category: 2,
-          date: currentDate),
+      Thought(title: "تفكر",content: "تفكر في خلق السماوات والأرض",
+          category: 1,date: currentDate),
+      Thought(title: "شكر",content: "التفكر في نعم الله التي لا تعد ولا تحصى",
+          category: 1,date: currentDate),
+      Thought(title: "تذكير",content: "تذكر الموت فإنه يزهد في الدنيا",
+          category: 2,date: currentDate)
     ];
 
     for (var thought in thoughts) {
@@ -275,5 +326,62 @@ class DatabaseManager {
     await _databaseHelper.resetDatabase();
     _isInitialized = false;
     await initialize();
+  }
+
+  Future<void> _populateCurrentLocation() async {
+    final currentLocation =
+        await _databaseHelper.query(AppDatabase.tableCurrentLocation);
+    if (currentLocation.isEmpty) {
+      await _databaseHelper
+          .insert(AppDatabase.tableCurrentLocation, {'location_id': 1});
+    }
+  }
+
+  Future<void> _populateCurrentAdhan() async {
+    final currentAdhan = await _databaseHelper.query(AppDatabase.tableCurrentAdhan);
+    if (currentAdhan.isEmpty) {
+      await _databaseHelper.insert(AppDatabase.tableCurrentAdhan, {
+        'location_id': 1,
+        'date': DateTime.now().toIso8601String().split('T')[0],
+        'fajr_time': '00:00',
+        'sunrise_time': '00:00',
+        'dhuhr_time': '00:00',
+        'asr_time': '00:00',
+        'maghrib_time': '00:00',
+        'isha_time': '00:00',
+      });
+    }
+  }
+
+  Future<void> _populateAdhanTimes() async {
+    // التأكد من وجود سجل لكل موقع في جدول أوقات الأذان الحالية
+    try {
+      final now = DateTime.now().toIso8601String().split('T')[0];
+      final List<Map<String, dynamic>> locations =
+          await _databaseHelper.query(AppDatabase.tableLocation);
+
+      for (var location in locations) {
+        int locationId = location['id'];
+
+        // إضافة سجل في جدول أوقات الأذان لكل موقع للتاريخ الحالي
+        // استخدام ConflictAlgorithm.replace لتجنب مشكلة UNIQUE constraint
+        await _databaseHelper.insert(
+          AppDatabase.tableAdhanTimes,
+          {
+            'location_id': locationId,
+            'date': now,
+            'fajr_time': '00:00',
+            'sunrise_time': '00:00',
+            'dhuhr_time': '00:00',
+            'asr_time': '00:00',
+            'maghrib_time': '00:00',
+            'isha_time': '00:00',
+          },
+        );
+      }
+    } catch (e) {
+      print(e);
+      print("error in populateAdhanTimes");
+    }
   }
 }
