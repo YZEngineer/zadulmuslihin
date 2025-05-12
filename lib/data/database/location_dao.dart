@@ -14,19 +14,25 @@ class LocationDao {
 
   /// تحديث موقع موجود
   Future<int> update(Location location) async {
-    if (location.id == null) {throw ArgumentError('لا يمكن تحديث موقع بدون معرف');}
+    if (location.id == null) {
+      throw ArgumentError('لا يمكن تحديث موقع بدون معرف');
+    }
     return await _databaseHelper
-        .update(_tableName, location.toMap(), 'id = ?', [location.id]);  }
+        .update(_tableName, location.toMap(), 'id = ?', [location.id]);
+  }
 
   /// حذف موقع بواسطة المعرف
   Future<int> delete(int id) async {
-    return await _databaseHelper.delete(_tableName, 'id = ?', [id]);  }
+    return await _databaseHelper.delete(_tableName, 'id = ?', [id]);
+  }
 
   /// الحصول على موقع بواسطة المعرف
   Future<Location?> getLocationById(int id) async {
-    final result = await _databaseHelper.query(
-      _tableName, where: 'id = ?', whereArgs: [id]);
-    if (result.isEmpty) {return null;}
+    final result = await _databaseHelper
+        .query(_tableName, where: 'id = ?', whereArgs: [id]);
+    if (result.isEmpty) {
+      return null;
+    }
 
     return Location.fromMap(result.first);
   }
@@ -58,7 +64,8 @@ class LocationDao {
     final result = await _databaseHelper
         .rawQuery('SELECT COUNT(*) as count FROM $_tableName');
 
-    return result.first['count'] as int;  }
+    return result.first['count'] as int;
+  }
 
   /// البحث في المواقع
   Future<List<Location>> search(String keyword) async {
@@ -70,6 +77,4 @@ class LocationDao {
 
     return result.map((map) => Location.fromMap(map)).toList();
   }
-
-
 }

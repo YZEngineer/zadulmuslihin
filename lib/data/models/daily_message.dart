@@ -1,18 +1,17 @@
 class DailyMessage {
   final int? id;
-  final String title;
   final String content;
-  final int category;
-  final String source;
-  final DateTime date;
-
+  final String title;
+  final String category; // حكمة، آية، حديث، دعاء، اقتباس
+  final DateTime date; // تاريخ الرسالة
+  final String? source; // مصدر الرسالة
   DailyMessage({
     this.id,
     required this.title,
     required this.content,
     required this.category,
-    required this.source,
     required this.date,
+    this.source,
   });
 
   factory DailyMessage.fromMap(Map<String, dynamic> map) {
@@ -21,8 +20,8 @@ class DailyMessage {
       title: map['title'],
       content: map['content'],
       category: map['category'],
+      date: DateTime.parse(map['date']),
       source: map['source'],
-      date: map['date'] is String ? DateTime.parse(map['date']) : map['date'],
     );
   }
 
@@ -32,31 +31,30 @@ class DailyMessage {
       'title': title,
       'content': content,
       'category': category,
-      'source': source,
       'date': date.toIso8601String(),
+      'source': source,
     };
   }
 
   DailyMessage copyWith({
     int? id,
-    String? title,
     String? content,
-    int? category,
-    String? source,
+    String? category,
     DateTime? date,
+    String? source,
   }) {
     return DailyMessage(
       id: id ?? this.id,
-      title: title ?? this.title,
       content: content ?? this.content,
+      title: title ?? this.title,
       category: category ?? this.category,
-      source: source ?? this.source,
       date: date ?? this.date,
+      source: source ?? this.source,
     );
   }
 
   @override
   String toString() {
-    return 'DailyMessage(id: $id, title: $title, content: $content, category: $category, source: $source, date: $date)';
+    return 'DailyMessage(id: $id, content: $content, title: $title, category: $category, date: $date, source: $source)';
   }
 }

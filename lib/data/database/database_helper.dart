@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'database.dart';
+import 'package:path/path.dart';
 
 /// مساعد قاعدة البيانات للعمليات العامة
 class DatabaseHelper {
@@ -13,6 +14,12 @@ class DatabaseHelper {
     if (_database != null) return _database!;
     _database = await AppDatabase.getDatabase();
     return _database!;
+  }
+
+  /// إعادة تهيئة قاعدة البيانات
+  Future<Database> reinitializeDatabase() async {
+    _database = null;
+    return await database;
   }
 
   /// إدراج سجل في الجدول

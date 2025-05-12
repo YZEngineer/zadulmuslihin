@@ -1,5 +1,4 @@
-import 'package:zadulmuslihin/data/models/current_location.dart';
-
+import '../models/current_location.dart';
 import '../models/current_adhan.dart';
 import '../models/adhan_time.dart';
 import 'database.dart';
@@ -18,7 +17,9 @@ class CurrentAdhanDao {
 
   /// تحديث بيانات الصلاة الحالية
   Future<int> ChangeCurrentAdhan(CurrentAdhan updatedAdhan) async {
-    return await _databaseHelper.update(_tableName, updatedAdhan.toMap(), 'id = ?', [1]);}
+    return await _databaseHelper
+        .update(_tableName, updatedAdhan.toMap(), 'id = ?', [1]);
+  }
 
   /// الحصول على بيانات الصلاة الحالية
   Future<List<CurrentAdhan>> getCurrentAdhan() async {
@@ -37,12 +38,9 @@ class CurrentAdhanDao {
     }
   }
 
-
   /// إصلاح جدول الأذان الحالي إذا كان فارغاً
   Future<void> fixEmptyCurrentAdhanTable() async {
     try {
-
-
       final db = await _databaseHelper.database;
       int locationId = await _currentLocationDao.getCurrentLocationId();
 
@@ -71,17 +69,87 @@ class CurrentAdhanDao {
 
   Future<void> UpdateCurrentAdhan() async {
     try {
-
       int locationId = await _currentLocationDao.getCurrentLocationId();
       DateTime date = DateTime.now();
 
-      AdhanTimes adhanTimes =await _adhanTimesDao.getByDateAndLocation(date, locationId);
+      AdhanTimes? adhanTimes =
+          await _adhanTimesDao.getByDateAndLocation(date, locationId);
+
+      // Si no hay datos de adhanTimes, no podemos continuar
+      if (adhanTimes == null) {
+        print(
+            'لا توجد أوقات صلاة متاحة للتاريخ: ${date.toString()} والموقع: $locationId');
+        return;
+      }
+
       CurrentAdhan newCurrentAdhan = CurrentAdhan.fromMap(adhanTimes.toMap());
-      newCurrentAdhan =newCurrentAdhan.copyWith(id: 1); /// نتأكد من أن المعرف هو 1   /// ممكن  حذفه
+      newCurrentAdhan = newCurrentAdhan.copyWith(id: 1);
+
+      /// نتأكد من أن المعرف هو 1   /// ممكن  حذفه
       await ChangeCurrentAdhan(newCurrentAdhan);
-        print('تم تحديث الأذان الحالي للموقع: $locationId والتاريخ: ${date.toString()}');
-      
+      print(
+          'تم تحديث الأذان الحالي للموقع: $locationId والتاريخ: ${date.toString()}');
     } catch (e) {
-      print('خطأ في تحديث الأذان الحالي: $e');}
+      print('خطأ في تحديث الأذان الحالي: $e');
+    }
+  }
+
+  /// الحصول على أوقات الأذان الحالية للموقع المحدد
+  Future<AdhanTimes?> getCurrentAdhanTimes(int locationId) async {
+    try {
+      final db = await _databaseHelper.database;
+      final result = await db.query(
+        _tableName,
+        where: 'location_id = ?',
+        whereArgs: [locationId],
+        limit: 1,
+      );
+
+      if (result.isEmpty) {
+        // إذا لم يكن هناك سجل، حاول تحديثه أولاً
+        await UpdateCurrentAdhan();
+
+        // محاولة الحصول على السجل مرة أخرى
+        final updatedResult = await db.query(
+          _tableName,
+          where: 'location_id = ?',
+          whereArgs: [locationId],
+          limit: 1,
+        );
+
+        if (updatedResult.isEmpty) {
+          return null;
+        }
+
+        // تحويل السجل إلى كائن AdhanTimes
+        return AdhanTimes(
+          id: updatedResult.first['id'] as int?,
+          locationId: updatedResult.first['location_id'] as int,
+          date: DateTime.parse(updatedResult.first['date'] as String),
+          fajrTime: updatedResult.first['fajr_time'] as String,
+          sunriseTime: updatedResult.first['sunrise_time'] as String,
+          dhuhrTime: updatedResult.first['dhuhr_time'] as String,
+          asrTime: updatedResult.first['asr_time'] as String,
+          maghribTime: updatedResult.first['maghrib_time'] as String,
+          ishaTime: updatedResult.first['isha_time'] as String,
+        );
+      }
+
+      // تحويل السجل إلى كائن AdhanTimes
+      return AdhanTimes(
+        id: result.first['id'] as int?,
+        locationId: result.first['location_id'] as int,
+        date: DateTime.parse(result.first['date'] as String),
+        fajrTime: result.first['fajr_time'] as String,
+        sunriseTime: result.first['sunrise_time'] as String,
+        dhuhrTime: result.first['dhuhr_time'] as String,
+        asrTime: result.first['asr_time'] as String,
+        maghribTime: result.first['maghrib_time'] as String,
+        ishaTime: result.first['isha_time'] as String,
+      );
+    } catch (e) {
+      print('خطأ في الحصول على أوقات الأذان الحالية: $e');
+      return null;
+    }
   }
 }

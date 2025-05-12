@@ -1,57 +1,78 @@
 /// نموذج يمثل الموقع الحالي المختار
 class CurrentLocation {
-  final int id; // دائما 1 لأنه سجل واحد فقط
-  final int locationId; // معرف الموقع المختار
+  final int? locationId;
+  final String city;
+  final String country;
+  final double latitude;
+  final double longitude;
+  final String? timezone;
+  final String? madhab;
+  final int? methodId;
 
   CurrentLocation({
-    this.id = 1,
-    required this.locationId,
-  }) {
-    if (locationId <= 0) {
-      throw ArgumentError('معرف الموقع يجب أن يكون رقمًا موجبًا');
-    }
-    if (id != 1) {
-      throw ArgumentError('معرف CurrentLocation يجب أن يكون دائمًا 1');
-    }
-  }
+    this.locationId,
+    required this.city,
+    required this.country,
+    required this.latitude,
+    required this.longitude,
+    this.timezone,
+    this.madhab,
+    this.methodId,
+  });
 
   /// إنشاء نموذج من خريطة بيانات
   factory CurrentLocation.fromMap(Map<String, dynamic> map) {
-    if (map['location_id'] == null) {
-      throw ArgumentError('البيانات غير كاملة: يجب توفير location_id');
-    }
-
     return CurrentLocation(
-      id: map['id'] ?? 1,
       locationId: map['location_id'],
+      city: map['city'],
+      country: map['country'],
+      latitude: map['latitude'],
+      longitude: map['longitude'],
+      timezone: map['timezone'],
+      madhab: map['madhab'],
+      methodId: map['method_id'],
     );
   }
 
   /// تحويل النموذج إلى خريطة بيانات لحفظها في قاعدة البيانات
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
       'location_id': locationId,
+      'city': city,
+      'country': country,
+      'latitude': latitude,
+      'longitude': longitude,
+      'timezone': timezone,
+      'madhab': madhab,
+      'method_id': methodId,
     };
   }
 
   /// إنشاء نسخة معدلة من هذا النموذج
   CurrentLocation copyWith({
-    int? id,
     int? locationId,
+    String? city,
+    String? country,
+    double? latitude,
+    double? longitude,
+    String? timezone,
+    String? madhab,
+    int? methodId,
   }) {
     return CurrentLocation(
-      id: id ?? this.id,
       locationId: locationId ?? this.locationId,
+      city: city ?? this.city,
+      country: country ?? this.country,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      timezone: timezone ?? this.timezone,
+      madhab: madhab ?? this.madhab,
+      methodId: methodId ?? this.methodId,
     );
-  }
-
-  int getCurrentLocationId() {
-    return locationId;
   }
 
   @override
   String toString() {
-    return 'CurrentLocation(id: $id, locationId: $locationId)';
+    return 'CurrentLocation(locationId: $locationId, city: $city, country: $country, latitude: $latitude, longitude: $longitude, timezone: $timezone, madhab: $madhab, methodId: $methodId)';
   }
 }

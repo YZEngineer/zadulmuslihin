@@ -1,16 +1,16 @@
 class DailyTask {
   final int? id;
-  final String title; //عنوان المهمة
-  final bool isCompleted; //مكتمل
-  final bool workOn; //اعمل عليه
-  final int category; // رياضة, عادات ,اهداف
+  final String title;
+  final int category; // عادات، أهداف، رياضة، أخرى
+  final bool completed;
+  final bool workOn; // يومي، أسبوعي، شهري، لا يتكرر
 
   DailyTask({
     this.id,
     required this.title,
-    this.isCompleted = false,
     required this.category,
-    this.workOn = false,
+    this.completed = false,
+    required this.workOn,
   }) {
     if (title.isEmpty) {
       throw ArgumentError(
@@ -19,16 +19,12 @@ class DailyTask {
   }
 
   factory DailyTask.fromMap(Map<String, dynamic> map) {
-    if (map['title'] == null || map['category'] == null) {
-      throw ArgumentError('البيانات غير كاملة: يجب توفير عنوان المهمة وتصنيف');
-    }
-
     return DailyTask(
       id: map['id'],
       title: map['title'],
-      isCompleted: map['is_completed'] == 1,
       category: map['category'],
-      workOn: map['is_on_working'] == 1,
+      completed: map['is_completed'] == 1 || map['completed'] == 1,
+      workOn: map['is_on_working'] == 1 || map['workOn'] == 1,
     );
   }
 
@@ -36,8 +32,8 @@ class DailyTask {
     return {
       'id': id,
       'title': title,
-      'is_completed': isCompleted ? 1 : 0,
       'category': category,
+      'is_completed': completed ? 1 : 0,
       'is_on_working': workOn ? 1 : 0,
     };
   }
@@ -45,22 +41,24 @@ class DailyTask {
   DailyTask copyWith({
     int? id,
     String? title,
-    bool? isCompleted,
     int? category,
+    bool? completed,
     bool? workOn,
+    DateTime? date,
+    DateTime? dueDate,
   }) {
     return DailyTask(
       id: id ?? this.id,
       title: title ?? this.title,
-      isCompleted: isCompleted ?? this.isCompleted,
       category: category ?? this.category,
+      completed: completed ?? this.completed,
       workOn: workOn ?? this.workOn,
     );
   }
 
   @override
   String toString() {
-    return 'DailyTask(id: $id, title: $title, isCompleted: $isCompleted, '
+    return 'DailyTask(id: $id, title: $title, isCompleted: $completed, '
         'category: $category, workOn: $workOn)';
   }
 }

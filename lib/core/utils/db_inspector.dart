@@ -11,18 +11,15 @@ class DbInspector {
 
     final tables = [
       AppDatabase.tableAdhanTimes,
-      AppDatabase.tableAthkar,
       AppDatabase.tableCurrentAdhan,
       AppDatabase.tableCurrentLocation,
       AppDatabase.tableDailyTask,
       AppDatabase.tableDailyWorship,
-      AppDatabase.tableHadith,
       AppDatabase.tableIslamicInformation,
       AppDatabase.tableLocation,
       AppDatabase.tableWorshipHistory,
       AppDatabase.tableThoughtHistory,
       AppDatabase.tableThought,
-      AppDatabase.tableQuranVerses,
       AppDatabase.tableDailyMessage,
       AppDatabase.tableMyLibrary,
     ];
